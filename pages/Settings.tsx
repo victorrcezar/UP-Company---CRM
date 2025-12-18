@@ -109,8 +109,8 @@ const IntegrationsSettings = () => {
                         </p>
                         <ol className="text-[11px] text-purple-700/80 dark:text-purple-400/60 list-decimal ml-4 space-y-1">
                             <li>Acesse o <b>Google Cloud Console</b>.</li>
-                            <li>Vá em <b>APIs e Serviços > Credenciais</b>.</li>
-                            <li>Clique em <b>Criar Credenciais > ID do cliente OAuth</b>.</li>
+                            <li>Vá em <b>APIs e Serviços &gt; Credenciais</b>.</li>
+                            <li>Clique em <b>Criar Credenciais &gt; ID do cliente OAuth</b>.</li>
                             <li>Tipo de aplicativo: <b>Aplicativo da Web</b>.</li>
                             <li>Em "Origens JavaScript autorizadas", adicione a URL deste CRM.</li>
                             <li>Copie o <b>ID do cliente</b> e cole acima.</li>
