@@ -16,7 +16,9 @@
     "react-router-dom": "^7.11.0",
     "react-dom": "^19.2.3",
     "@firebase/firestore": "^4.9.3",
-    "@firebase/app": "^0.14.6"
+    "@firebase/app": "^0.14.6",
+    "vite": "^7.3.0",
+    "@vitejs/plugin-react": "^5.1.2"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
