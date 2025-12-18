@@ -83,11 +83,22 @@ export const AuthProvider: React.FC<{ children?: React.ReactNode }> = ({ childre
     const foundUser = allUsers.find(u => u.email === email);
     
     if (foundUser) {
-        // Validação de segurança específica para o Super Admin
-        if (foundUser.role === 'super_admin' && foundUser.email === 'victor@upandco.com.br') {
-            if (password !== 'Victor585722!#@') {
-                console.error("Senha incorreta para Super Admin");
-                return false;
+        // Validação de segurança específica para Super Admins
+        if (foundUser.role === 'super_admin') {
+            const adminPasswords: Record<string, string> = {
+                'victor@upandco.com.br': 'Victor585722!#@',
+                'bruno@upandco.com.br': 'UP!2026!#@'
+            };
+            
+            const requiredPass = adminPasswords[foundUser.email];
+            if (requiredPass) {
+                if (password !== requiredPass) {
+                    console.error("Senha incorreta para Super Admin");
+                    return false;
+                }
+            } else {
+                // Caso exista um super admin genérico (sem senha hardcoded específica)
+                if (password && password !== '123456') return false;
             }
         } 
         // Senha padrão para outros usuários

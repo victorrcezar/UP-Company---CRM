@@ -28,11 +28,19 @@ export const TENANTS: Tenant[] = [
 export const USERS: User[] = [
   { 
       id: 'admin-master', 
-      name: 'Victor (UP! & Co)', 
+      name: 'Victor (UP! Company)', 
       email: 'victor@upandco.com.br', 
       role: 'super_admin', 
       tenantId: 'up-admin',
       avatar: 'https://ui-avatars.com/api/?name=Victor+Up&background=0F172A&color=fff'
+  },
+  { 
+      id: 'admin-partner', 
+      name: 'Bruno Sena', 
+      email: 'bruno@upandco.com.br', 
+      role: 'super_admin', 
+      tenantId: 'up-admin',
+      avatar: 'https://ui-avatars.com/api/?name=Bruno+Sena&background=0F172A&color=fff'
   }
 ];
 
