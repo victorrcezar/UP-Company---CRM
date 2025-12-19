@@ -197,7 +197,7 @@ const Pipeline = () => {
                                         >
                                             <UserCheck size={16} />
                                         </button>
-                                        <a href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-[#25D366] text-white hover:bg-[#128C7E] flex items-center justify-center transition-all hover:scale-110 shadow-lg" title="WhatsApp">
+                                        <a href={`https://wa.me/55${lead.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-[#25D366] text-white hover:bg-[#128C7E] flex items-center justify-center transition-all hover:scale-110 shadow-lg" title="WhatsApp">
                                             <WhatsAppLogo />
                                         </a>
                                     </div>

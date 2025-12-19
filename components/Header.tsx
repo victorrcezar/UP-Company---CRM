@@ -123,16 +123,17 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   return (
     <header className="h-16 md:h-20 glass sticky top-0 z-40 flex items-center justify-between px-4 md:px-8 transition-colors duration-300">
       <div className="flex items-center gap-4">
+        {/* Menu button removed on mobile, kept hidden for logical consistency if we ever want to re-enable on specific breakpoints */}
         <button 
           onClick={toggleSidebar} 
-          className="md:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl active:scale-95 transition-all"
+          className="hidden md:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl active:scale-95 transition-all"
         >
           <Menu size={24} />
         </button>
         
-        {/* Mobile Title (When Sidebar is closed) */}
+        {/* Mobile Title (Always visible now on mobile since sidebar toggle is gone) */}
         <div className="md:hidden flex items-center gap-2">
-             <img src="https://static.wixstatic.com/media/1f17f3_1e2b54d2fd894dd997c6cbc18e940576~mv2.png" className="h-6 w-auto" alt="Logo" />
+             <img src="https://static.wixstatic.com/media/1f17f3_1e2b54d2fd894dd997c6cbc18e940576~mv2.png" className="h-7 w-auto" alt="Logo" />
         </div>
 
         {user?.role === 'super_admin' && (

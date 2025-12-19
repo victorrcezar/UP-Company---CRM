@@ -283,7 +283,8 @@ const LeadModal: React.FC<LeadModalProps> = ({ isOpen, onClose, leadId, onSaveSu
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-0 md:p-4 animate-fade-in">
-            <div className="bg-white dark:bg-up-deep w-full max-w-5xl h-full md:h-[90vh] md:rounded-[2.5rem] shadow-2xl flex flex-col animate-scale-up border border-white/10 overflow-hidden">
+            {/* Responsividade: rounded-none e h-full no mobile para preencher a tela */}
+            <div className="bg-white dark:bg-up-deep w-full max-w-5xl h-full md:h-[90vh] rounded-none md:rounded-[2.5rem] shadow-2xl flex flex-col animate-scale-up border border-white/10 overflow-hidden">
                 
                 <div className="px-6 md:px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-up-deep shrink-0">
                     <div className="flex-1 min-w-0 mr-4">
@@ -366,7 +367,7 @@ const LeadModal: React.FC<LeadModalProps> = ({ isOpen, onClose, leadId, onSaveSu
                                             />
                                             {formData.phone && (
                                                 <a 
-                                                    href={`https://wa.me/${formData.phone.replace(/\D/g, '')}`}
+                                                    href={`https://wa.me/55${formData.phone.replace(/\D/g, '')}`}
                                                     target="_blank"
                                                     rel="noreferrer"
                                                     className="absolute right-4 top-1/2 -translate-y-1/2 text-green-500 hover:scale-110 transition-transform bg-green-50 dark:bg-green-500/10 p-1.5 rounded-lg"

@@ -102,7 +102,7 @@ const UnifiedEventCard: React.FC<{ event: UnifiedEvent }> = ({ event }) => {
                         </div>
                     </div>
                     <div className="flex items-center gap-2 pr-2">
-                         <a href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center text-green-600 transition-all hover:bg-green-100 dark:hover:bg-green-500/20 hover:scale-110 shadow-sm">
+                         <a href={`https://wa.me/55${lead.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center text-green-600 transition-all hover:bg-green-100 dark:hover:bg-green-500/20 hover:scale-110 shadow-sm">
                             <WhatsAppLogo />
                         </a>
                         <ChevronRight size={20} className="text-gray-300 group-hover:text-up-accent transition-colors" />

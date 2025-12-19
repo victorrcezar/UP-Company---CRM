@@ -87,7 +87,7 @@ const LeadList: React.FC<LeadListProps> = ({ leads, onEditLead, onDeleteLead, on
                   <td className="py-4 px-6 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-2">
                         <a 
-                            href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`} 
+                            href={`https://wa.me/55${lead.phone.replace(/\D/g, '')}`} 
                             target="_blank" 
                             rel="noreferrer"
                             className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
@@ -149,7 +149,7 @@ const LeadList: React.FC<LeadListProps> = ({ leads, onEditLead, onDeleteLead, on
                     </div>
                     <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                         <a 
-                            href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`} 
+                            href={`https://wa.me/55${lead.phone.replace(/\D/g, '')}`} 
                             target="_blank" 
                             rel="noreferrer"
                             className="p-1.5 text-green-600 bg-green-50 dark:bg-green-900/20 rounded-lg"

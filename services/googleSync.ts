@@ -19,7 +19,8 @@ class GoogleSyncService {
         const startTime = new Date(lead.nextFollowUp);
         const endTime = new Date(startTime.getTime() + 30 * 60000);
         const cleanPhone = lead.phone.replace(/\D/g, '');
-        const waLink = `https://wa.me/${cleanPhone}`;
+        // Adicionado código do país 55
+        const waLink = `https://wa.me/55${cleanPhone}`;
 
         const payload = {
             titulo: `⚡ UP! Follow-up: ${lead.name} (${lead.source})`,

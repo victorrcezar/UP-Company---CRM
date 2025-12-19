@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../services/mockDb';
 import { Client } from '../types';
-import { Search, Handshake, DollarSign, Clock, MoreHorizontal, Mail, TrendingUp, Users, UserPlus, AlertTriangle, CalendarCheck, Trash2, RefreshCw, Edit, Phone } from 'lucide-react';
+import { Search, Handshake, TrendingUp, Users, UserPlus, Trash2, RefreshCw, Edit } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import ClientDetailsModal from '../components/clients/ClientDetailsModal';
 import ClientModal from '../components/clients/ClientModal';
@@ -139,42 +139,42 @@ const Clients = () => {
 
       {/* KPI Cards Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white dark:bg-up-deep p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between h-32 md:h-40">
-              <div className="flex justify-between items-start">
+          <div className="bg-white dark:bg-up-deep p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between h-auto min-h-[160px] md:h-40">
+              <div className="flex justify-between items-start mb-4 md:mb-0">
                   <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-2xl text-green-600">
                       <TrendingUp size={24} />
                   </div>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Recorrência Mensal (MRR)</p>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-right max-w-[60%] leading-tight">Recorrência Mensal (MRR)</p>
               </div>
               <div>
                   <h3 className="text-3xl font-black text-up-dark dark:text-white">R$ {mrr.toLocaleString('pt-BR')}</h3>
-                  <p className="text-xs text-gray-500 font-medium mt-1">Faturamento mensal atual</p>
+                  <p className="text-xs text-gray-500 font-medium mt-1 truncate">Faturamento mensal atual</p>
               </div>
           </div>
 
-          <div className="bg-white dark:bg-up-deep p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between h-32 md:h-40">
-              <div className="flex justify-between items-start">
+          <div className="bg-white dark:bg-up-deep p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between h-auto min-h-[160px] md:h-40">
+              <div className="flex justify-between items-start mb-4 md:mb-0">
                   <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl text-blue-600">
                       <Users size={24} />
                   </div>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Base Ativa</p>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-right max-w-[60%] leading-tight">Base Ativa</p>
               </div>
               <div>
                   <h3 className="text-3xl font-black text-up-dark dark:text-white">{activeClients.length} Clientes</h3>
-                  <p className="text-xs text-gray-500 font-medium mt-1">Contratos em vigor</p>
+                  <p className="text-xs text-gray-500 font-medium mt-1 truncate">Contratos em vigor</p>
               </div>
           </div>
 
-          <div className="bg-white dark:bg-up-deep p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between h-32 md:h-40">
-              <div className="flex justify-between items-start">
+          <div className="bg-white dark:bg-up-deep p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between h-auto min-h-[160px] md:h-40">
+              <div className="flex justify-between items-start mb-4 md:mb-0">
                   <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-2xl text-purple-600">
                       <Handshake size={24} />
                   </div>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Valor em Carteira (TCV)</p>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-right max-w-[60%] leading-tight">Valor em Carteira (TCV)</p>
               </div>
               <div>
                   <h3 className="text-3xl font-black text-up-dark dark:text-white">R$ {tcv.toLocaleString('pt-BR')}</h3>
-                  <p className="text-xs text-gray-500 font-medium mt-1">Soma de todos os contratos ativos</p>
+                  <p className="text-xs text-gray-500 font-medium mt-1 truncate">Soma de todos os contratos ativos</p>
               </div>
           </div>
       </div>
@@ -245,7 +245,7 @@ const Clients = () => {
                               <td className="px-6 py-5 text-right" onClick={(e) => e.stopPropagation()}>
                                   <div className="flex items-center justify-end gap-2">
                                       <a 
-                                          href={`https://wa.me/${client.phone.replace(/\D/g, '')}`} 
+                                          href={`https://wa.me/55${client.phone.replace(/\D/g, '')}`} 
                                           target="_blank" 
                                           rel="noreferrer"
                                           className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
@@ -310,7 +310,7 @@ const Clients = () => {
                       
                       <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                           <a 
-                              href={`https://wa.me/${client.phone.replace(/\D/g, '')}`} 
+                              href={`https://wa.me/55${client.phone.replace(/\D/g, '')}`} 
                               target="_blank" 
                               rel="noreferrer"
                               className="w-9 h-9 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center"
