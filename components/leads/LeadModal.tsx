@@ -282,12 +282,12 @@ const LeadModal: React.FC<LeadModalProps> = ({ isOpen, onClose, leadId, onSaveSu
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-4 animate-fade-in">
-            <div className="bg-white dark:bg-up-deep w-full max-w-5xl md:rounded-[2.5rem] shadow-2xl flex flex-col h-full md:h-[90vh] animate-scale-up border border-white/10 overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-0 md:p-4 animate-fade-in">
+            <div className="bg-white dark:bg-up-deep w-full max-w-5xl h-full md:h-[90vh] md:rounded-[2.5rem] shadow-2xl flex flex-col animate-scale-up border border-white/10 overflow-hidden">
                 
-                <div className="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-up-deep shrink-0">
-                    <div>
-                        <h2 className="text-2xl font-black text-up-dark dark:text-white uppercase tracking-tight">
+                <div className="px-6 md:px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-up-deep shrink-0">
+                    <div className="flex-1 min-w-0 mr-4">
+                        <h2 className="text-xl md:text-2xl font-black text-up-dark dark:text-white uppercase tracking-tight truncate">
                             {leadId ? 'Detalhes do Negócio' : 'Novo Lead'}
                         </h2>
                         <div className="flex items-center gap-2 mt-1">
@@ -301,30 +301,30 @@ const LeadModal: React.FC<LeadModalProps> = ({ isOpen, onClose, leadId, onSaveSu
                             </select>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-3 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-2xl transition-all">
+                    <button onClick={onClose} className="p-3 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-2xl transition-all shrink-0">
                         <X size={24} />
                     </button>
                 </div>
 
-                <div className="flex border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-up-deep shrink-0">
+                <div className="flex border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-up-deep shrink-0 overflow-x-auto">
                     <button 
                         onClick={() => setActiveTab('info')}
-                        className={`px-8 py-4 text-xs font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === 'info' ? 'border-up-dark text-up-dark dark:text-white' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                        className={`flex-1 min-w-[120px] px-4 md:px-8 py-4 text-xs font-black uppercase tracking-widest transition-all border-b-2 text-center flex justify-center ${activeTab === 'info' ? 'border-up-dark text-up-dark dark:text-white' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                     >
                         <div className="flex items-center gap-2"><User size={16} /> Informações</div>
                     </button>
                     <button 
                         onClick={() => setActiveTab('timeline')}
-                        className={`px-8 py-4 text-xs font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === 'timeline' ? 'border-up-dark text-up-dark dark:text-white' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                        className={`flex-1 min-w-[120px] px-4 md:px-8 py-4 text-xs font-black uppercase tracking-widest transition-all border-b-2 text-center flex justify-center ${activeTab === 'timeline' ? 'border-up-dark text-up-dark dark:text-white' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                     >
-                        <div className="flex items-center gap-2"><History size={16} /> Linha do Tempo</div>
+                        <div className="flex items-center gap-2"><History size={16} /> Timeline</div>
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-white dark:bg-up-deep">
                     {activeTab === 'info' ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                            <div className="lg:col-span-8 space-y-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10">
+                            <div className="lg:col-span-8 space-y-6 md:space-y-8">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="md:col-span-2">
                                         <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Nome Completo</label>
@@ -439,7 +439,7 @@ const LeadModal: React.FC<LeadModalProps> = ({ isOpen, onClose, leadId, onSaveSu
                                                 </div>
                                             </div>
 
-                                            <div className="h-full flex flex-col justify-center">
+                                            <div className="h-full flex flex-col justify-center mt-4 md:mt-0">
                                                 {currentTenant?.googleScriptUrl ? (
                                                     <div className={`p-4 rounded-2xl border transition-all ${syncToCalendar ? 'bg-blue-500/10 border-blue-500/30' : 'bg-gray-100 dark:bg-up-deep border-gray-200 dark:border-gray-700'}`}>
                                                         <div className="flex items-center justify-between mb-2">
@@ -507,16 +507,16 @@ const LeadModal: React.FC<LeadModalProps> = ({ isOpen, onClose, leadId, onSaveSu
                     ) : (
                         <div className="space-y-8 animate-fade-in">
                             <div className="space-y-4">
-                                <div className="flex justify-between items-center">
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
                                     <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                         <MessageSquare size={16} /> 
                                         {editingNoteId ? 'Editando Anotação' : 'Nova Anotação'}
                                     </h3>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 w-full md:w-auto">
                                         {editingNoteId && (
                                             <button 
                                                 onClick={handleCancelEditNote}
-                                                className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-200 transition-all"
+                                                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-200 transition-all"
                                             >
                                                 <XCircle size={14} /> Cancelar
                                             </button>
@@ -524,16 +524,16 @@ const LeadModal: React.FC<LeadModalProps> = ({ isOpen, onClose, leadId, onSaveSu
                                         <button 
                                             onClick={handleSaveNote}
                                             disabled={!currentNote.trim()}
-                                            className={`flex items-center gap-2 px-4 py-2 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed group
+                                            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed group
                                                 ${editingNoteId ? 'bg-blue-600 hover:bg-blue-500' : 'bg-up-dark hover:bg-up-accent hover:text-up-dark'}`}
                                         >
                                             <Send size={14} className="group-hover:translate-x-1 transition-transform" /> 
-                                            {editingNoteId ? 'Atualizar Nota' : 'Registrar Nota'}
+                                            {editingNoteId ? 'Atualizar' : 'Registrar'}
                                         </button>
                                     </div>
                                 </div>
                                 <RichTextEditor 
-                                    key={editingNoteId || 'new'} // Force re-render on mode switch to handle content update cleanly
+                                    key={editingNoteId || 'new'} 
                                     initialValue={currentNote}
                                     onChange={setCurrentNote}
                                     onEnter={handleSaveNote}
@@ -562,7 +562,7 @@ const LeadModal: React.FC<LeadModalProps> = ({ isOpen, onClose, leadId, onSaveSu
                                                     </span>
                                                     
                                                     {/* Actions Buttons */}
-                                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <div className="flex gap-2">
                                                         <button 
                                                             onClick={() => handleStartEditNote(note)}
                                                             className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
@@ -592,12 +592,12 @@ const LeadModal: React.FC<LeadModalProps> = ({ isOpen, onClose, leadId, onSaveSu
                     )}
                 </div>
 
-                <div className="px-8 py-6 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3 bg-gray-50/30 dark:bg-up-dark/10 shrink-0">
+                <div className="px-6 md:px-8 py-6 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3 bg-gray-50/30 dark:bg-up-dark/10 shrink-0">
                     <button onClick={onClose} className="px-6 py-3 text-xs font-black text-gray-500 uppercase tracking-widest hover:bg-gray-100 rounded-2xl transition-all">Cancelar</button>
                     <button 
                         onClick={handleSave} 
                         disabled={isSaving}
-                        className={`px-10 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl transition-all flex items-center gap-2 ${isSaving ? 'bg-gray-400 cursor-wait' : 'bg-up-dark text-white shadow-up-dark/20 hover:scale-[1.02] active:scale-95'}`}
+                        className={`px-8 md:px-10 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl transition-all flex items-center gap-2 ${isSaving ? 'bg-gray-400 cursor-wait' : 'bg-up-dark text-white shadow-up-dark/20 hover:scale-[1.02] active:scale-95'}`}
                     >
                         {isSaving ? <RefreshCw size={18} className="animate-spin" /> : <CheckSquare size={18} />} 
                         {isSaving ? 'Sincronizando...' : leadId ? 'Atualizar Lead' : 'Criar Negócio'}

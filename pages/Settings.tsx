@@ -558,7 +558,7 @@ const Settings = () => {
         <div className="flex flex-col lg:flex-row gap-8">
             <div className="w-full lg:w-64 flex-shrink-0">
                 <div className="bg-white dark:bg-up-deep rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden sticky top-24">
-                    <nav className="flex flex-col p-2">
+                    <nav className="flex flex-row lg:flex-col p-2 overflow-x-auto gap-1 lg:gap-0">
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
                             const isActive = activeTab === tab.id;
@@ -566,7 +566,7 @@ const Settings = () => {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all duration-200 text-left
+                                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all duration-200 text-left whitespace-nowrap lg:whitespace-normal flex-1 lg:flex-none justify-center lg:justify-start
                                     ${isActive 
                                         ? 'bg-up-dark text-white shadow-lg' 
                                         : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800'

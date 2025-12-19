@@ -215,30 +215,46 @@ const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose
 
     return (
         <div className="fixed inset-0 bg-up-dark/95 backdrop-blur-md z-[60] flex items-center justify-center p-0 md:p-6 animate-fade-in">
-            <div className="bg-white dark:bg-up-deep w-full max-w-[1400px] h-full md:h-[95vh] md:rounded-[2.5rem] shadow-2xl flex flex-col animate-scale-up overflow-hidden border border-white/5">
+            <div className="bg-white dark:bg-up-deep w-full max-w-[1400px] h-full md:h-[95vh] md:rounded-[2.5rem] shadow-2xl flex flex-col animate-scale-up overflow-hidden border border-white/5 relative">
                 
-                <div className="bg-[#0A1F2E] text-white px-10 py-10 relative shrink-0">
-                    <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-up-accent/5 to-transparent"></div>
+                {/* Close Button: Adjusted for better mobile tap area and positioning */}
+                <button 
+                    onClick={onClose} 
+                    className="absolute top-3 right-3 md:top-6 md:right-6 p-2 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full transition-all z-50 backdrop-blur-sm"
+                >
+                    <X size={20} />
+                </button>
+
+                <div className="bg-[#0A1F2E] text-white px-5 py-6 md:px-10 md:py-10 relative shrink-0">
+                    <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-up-accent/5 to-transparent pointer-events-none"></div>
                     
-                    <div className="flex justify-between items-start relative z-10">
-                        <div className="flex items-center gap-8">
-                            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-up-accent to-blue-600 flex items-center justify-center text-4xl font-black shadow-2xl shadow-up-accent/20 ring-4 ring-white/5">
+                    <div className="flex flex-col md:flex-row justify-between items-start relative z-10 gap-6 md:gap-0">
+                        {/* 
+                           FIX: Added pr-14 to the main content container specifically on mobile 
+                           to prevent text from flowing under the absolute positioned Close button.
+                        */}
+                        <div className="flex items-start md:items-center gap-4 md:gap-8 w-full pr-14 md:pr-0">
+                            <div className="w-14 h-14 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-up-accent to-blue-600 flex items-center justify-center text-xl md:text-4xl font-black shadow-2xl shadow-up-accent/20 ring-4 ring-white/5 shrink-0 mt-1 md:mt-0">
                                 {client.name.charAt(0)}
                             </div>
-                            <div>
-                                <div className="flex items-center gap-4 mb-2">
-                                    <h2 className="text-4xl font-black tracking-tight">{client.name}</h2>
-                                    <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${getHealthColor(client.healthScore)}`}>
-                                        Saúde: {client.healthScore}%
-                                    </span>
-                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${client.status === 'Active' ? 'border-green-500 text-green-500' : 'border-gray-500 text-gray-400'}`}>
-                                        {getStatusText(client.status)}
-                                    </span>
+                            <div className="min-w-0 flex-1">
+                                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-3">
+                                    <h2 className="text-lg md:text-4xl font-black tracking-tight leading-tight break-words">
+                                        {client.name}
+                                    </h2>
+                                    <div className="flex flex-wrap gap-2">
+                                        <span className={`px-3 py-0.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border ${getHealthColor(client.healthScore)}`}>
+                                            Saúde: {client.healthScore}%
+                                        </span>
+                                        <span className={`px-3 py-0.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border ${client.status === 'Active' ? 'border-green-500 text-green-500' : 'border-gray-500 text-gray-400'}`}>
+                                            {getStatusText(client.status)}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div className="flex gap-6 opacity-60 text-sm font-medium items-center">
-                                    <span className="flex items-center gap-2"><Mail size={16} /> {client.email}</span>
+                                <div className="flex flex-col md:flex-row gap-2 md:gap-6 opacity-60 text-xs md:text-sm font-medium">
+                                    <span className="flex items-center gap-2 truncate max-w-[250px]"><Mail size={14} /> {client.email}</span>
                                     <span className="flex items-center gap-2">
-                                        <Phone size={16} /> {client.phone}
+                                        <Phone size={14} /> {client.phone}
                                         <a 
                                             href={`https://wa.me/${client.phone.replace(/\D/g, '')}`} 
                                             target="_blank" 
@@ -249,66 +265,62 @@ const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose
                                             <WhatsAppLogo />
                                         </a>
                                     </span>
-                                    <span className="flex items-center gap-2"><ShieldCheck size={16} /> Conta Principal</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 w-full md:w-auto mt-4 md:mt-0">
                             {isEditing ? (
-                                <>
+                                <div className="flex gap-2 w-full">
                                     <button 
                                         onClick={() => setIsEditing(false)} 
-                                        className="px-6 py-2.5 bg-white/5 hover:bg-white/10 rounded-2xl text-sm font-bold border border-white/10 transition-all uppercase tracking-widest"
+                                        className="flex-1 md:flex-none px-4 md:px-6 py-2.5 bg-white/5 hover:bg-white/10 rounded-2xl text-xs md:text-sm font-bold border border-white/10 transition-all uppercase tracking-widest"
                                     >
                                         Cancelar
                                     </button>
                                     <button 
                                         onClick={handleSave} 
-                                        className="px-8 py-2.5 bg-up-accent text-up-dark rounded-2xl text-sm font-black shadow-xl shadow-up-accent/20 transition-all flex items-center gap-2 uppercase tracking-widest"
+                                        className="flex-1 md:flex-none px-6 md:px-8 py-2.5 bg-up-accent text-up-dark rounded-2xl text-xs md:text-sm font-black shadow-xl shadow-up-accent/20 transition-all flex items-center justify-center gap-2 uppercase tracking-widest"
                                     >
                                         <Check size={18} /> Salvar
                                     </button>
-                                </>
+                                </div>
                             ) : (
                                 <button 
                                     onClick={handleStartEdit} 
-                                    className="px-8 py-2.5 bg-up-accent/10 hover:bg-up-accent/20 text-up-accent rounded-2xl text-sm font-black border border-up-accent/20 flex items-center gap-2 transition-all uppercase tracking-widest"
+                                    className="w-full md:w-auto px-6 md:px-8 py-2.5 bg-up-accent/10 hover:bg-up-accent/20 text-up-accent rounded-2xl text-xs md:text-sm font-black border border-up-accent/20 flex items-center justify-center gap-2 transition-all uppercase tracking-widest"
                                 >
-                                    <PencilLine size={18} /> Editar Cliente
+                                    <PencilLine size={18} /> Editar
                                 </button>
                             )}
-                            <button onClick={onClose} className="p-2.5 text-white/20 hover:text-white hover:bg-white/5 rounded-2xl transition-all ml-2">
-                                <X size={24} />
-                            </button>
                         </div>
                     </div>
 
-                    <div className="flex gap-10 mt-12 border-b border-white/10">
+                    <div className="flex gap-4 md:gap-10 mt-6 md:mt-12 border-b border-white/10 overflow-x-auto pb-1 no-scrollbar">
                         {[
                             { id: 'overview', label: 'Visão Geral', icon: Layout },
-                            { id: 'workarea', label: 'Plano de Entrega', icon: ListTodo },
+                            { id: 'workarea', label: 'Plano', icon: ListTodo },
                             { id: 'billing', label: 'Financeiro', icon: CreditCard },
                             { id: 'audit', label: 'Histórico', icon: History },
                         ].map(tab => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id as TabType)}
-                                className={`flex items-center gap-3 pb-5 text-sm font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === tab.id ? 'border-up-accent text-up-accent' : 'border-transparent text-white/30 hover:text-white'}`}
+                                className={`flex items-center gap-2 md:gap-3 pb-3 md:pb-5 text-xs md:text-sm font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap shrink-0 ${activeTab === tab.id ? 'border-up-accent text-up-accent' : 'border-transparent text-white/30 hover:text-white'}`}
                             >
-                                <tab.icon size={18} />
+                                <tab.icon size={16} />
                                 {tab.label}
                             </button>
                         ))}
                     </div>
                 </div>
 
-                <div className="flex-1 flex overflow-hidden bg-gray-50 dark:bg-[#0E2F3D]">
-                    <div className="flex-1 overflow-y-auto p-12 custom-scrollbar">
+                <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-gray-50 dark:bg-[#0E2F3D]">
+                    <div className="flex-1 overflow-y-auto p-4 md:p-12 custom-scrollbar">
                         {activeTab === 'overview' && (
-                            <div className="space-y-12 animate-fade-in">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                    <div className="bg-white dark:bg-up-dark/40 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm">
+                            <div className="space-y-6 md:space-y-12 animate-fade-in pb-10">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+                                    <div className="bg-white dark:bg-up-dark/40 p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm">
                                         <div className="flex justify-between items-center mb-6">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Saúde do Cliente</p>
                                             <Activity size={18} className="text-up-accent" />
@@ -320,7 +332,7 @@ const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose
                                         <p className="text-xs text-gray-500 mt-4 leading-relaxed">Baseado na conclusão de tarefas e estabilidade contratual.</p>
                                     </div>
 
-                                    <div className="bg-white dark:bg-up-dark/40 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm">
+                                    <div className="bg-white dark:bg-up-dark/40 p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm">
                                         <div className="flex justify-between items-center mb-6">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Receita Mensal</p>
                                             <TrendingUp size={18} className="text-green-500" />
@@ -329,7 +341,7 @@ const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose
                                         <p className="text-xs text-gray-400 mt-4">Valor atual do contrato mensal (MRR)</p>
                                     </div>
 
-                                    <div className="bg-white dark:bg-up-dark/40 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm">
+                                    <div className="bg-white dark:bg-up-dark/40 p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm">
                                         <div className="flex justify-between items-center mb-6">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tarefas Concluídas</p>
                                             <Zap size={18} className="text-yellow-500" />
@@ -343,8 +355,8 @@ const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div className="bg-white dark:bg-up-dark/40 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                                    <div className="bg-white dark:bg-up-dark/40 p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800">
                                         <h3 className="text-lg font-black text-up-dark dark:text-white mb-6 flex items-center gap-3">
                                             <MessageSquare size={20} className="text-up-accent" /> Notas Estratégicas
                                         </h3>
@@ -356,7 +368,7 @@ const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose
                                             placeholder="Adicione considerações estratégicas para esta conta..."
                                         />
                                     </div>
-                                    <div className="bg-white dark:bg-up-dark/40 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800">
+                                    <div className="bg-white dark:bg-up-dark/40 p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800">
                                         <h3 className="text-lg font-black text-up-dark dark:text-white mb-6 flex items-center gap-3">
                                             <ArrowRight size={20} className="text-up-accent" /> Atividades Recentes
                                         </h3>
@@ -378,18 +390,18 @@ const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose
                         )}
 
                         {activeTab === 'workarea' && (
-                            <div className="space-y-10 animate-fade-in pb-20">
+                            <div className="space-y-6 md:space-y-10 animate-fade-in pb-20">
                                 <div className="flex gap-4 p-2 bg-white dark:bg-up-dark/50 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-xl focus-within:ring-2 focus-within:ring-up-accent/20">
                                     <input 
                                         type="text" 
                                         value={newTaskTitle}
                                         onChange={(e) => setNewTaskTitle(e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
-                                        placeholder="Adicionar nova meta ou entrega..."
-                                        className="flex-1 px-6 py-4 bg-transparent text-sm font-bold focus:outline-none dark:text-white"
+                                        placeholder="Nova tarefa..."
+                                        className="flex-1 px-4 md:px-6 py-3 md:py-4 bg-transparent text-sm font-bold focus:outline-none dark:text-white"
                                     />
-                                    <button onClick={handleAddTask} className="bg-up-dark text-white px-10 rounded-2xl hover:bg-up-accent hover:text-up-dark transition-all font-black text-xs uppercase tracking-widest">
-                                        Lançar Tarefa
+                                    <button onClick={handleAddTask} className="bg-up-dark text-white px-6 md:px-10 rounded-2xl hover:bg-up-accent hover:text-up-dark transition-all font-black text-[10px] md:text-xs uppercase tracking-widest whitespace-nowrap">
+                                        Criar
                                     </button>
                                 </div>
 
@@ -424,7 +436,7 @@ const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose
                                                                 </span>
                                                                 {(isPending && (task.priority === 'Urgent' || task.priority === 'High')) && (
                                                                     <span className="flex items-center gap-1 text-[10px] font-black text-orange-500 uppercase tracking-widest animate-pulse">
-                                                                        <AlertTriangle size={12} /> Atenção Necessária
+                                                                        <AlertTriangle size={12} /> <span className="hidden md:inline">Atenção</span>
                                                                     </span>
                                                                 )}
                                                             </div>
@@ -448,7 +460,7 @@ const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose
                                                             )}
                                                         </div>
 
-                                                        <button onClick={() => handleDeleteTask(task.id)} className="p-2 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                                                        <button onClick={() => handleDeleteTask(task.id)} className="p-2 text-gray-300 hover:text-red-500 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100">
                                                             <Trash2 size={18} />
                                                         </button>
                                                     </div>
@@ -468,7 +480,7 @@ const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose
                                                                         {sub.title}
                                                                     </span>
                                                                 </div>
-                                                                <button onClick={() => handleDeleteSubtask(task.id, sub.id)} className="p-1 text-gray-300 hover:text-red-400 opacity-0 group-hover/sub:opacity-100 transition-opacity">
+                                                                <button onClick={() => handleDeleteSubtask(task.id, sub.id)} className="p-1 text-gray-300 hover:text-red-400 opacity-100 md:opacity-0 md:group-hover/sub:opacity-100 transition-opacity">
                                                                     <XCircle size={14} />
                                                                 </button>
                                                             </div>
@@ -482,7 +494,7 @@ const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose
                                                                     value={subtaskInputs[task.id] || ''}
                                                                     onChange={(e) => setSubtaskInputs(prev => ({ ...prev, [task.id]: e.target.value }))}
                                                                     onKeyDown={(e) => e.key === 'Enter' && handleAddSubtask(task.id)}
-                                                                    placeholder="Adicionar nova subetapa..."
+                                                                    placeholder="Adicionar subetapa..."
                                                                     className="w-full pl-3 pr-4 py-2 bg-gray-50 dark:bg-up-dark/20 border border-gray-100 dark:border-gray-700/50 rounded-lg text-xs font-medium focus:ring-1 focus:ring-up-accent/30 focus:border-up-accent/50 outline-none dark:text-gray-300 placeholder-gray-400 transition-all"
                                                                 />
                                                             </div>
@@ -533,7 +545,7 @@ const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose
                                     <h3 className="text-xl font-black text-up-dark dark:text-white mb-8 flex items-center gap-3">
                                         <AlertCircle size={24} className="text-up-accent" /> Gestão Financeira Estratégica
                                     </h3>
-                                    <div className="grid grid-cols-2 gap-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <button className="p-10 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-up-accent hover:bg-up-accent/5 transition-all flex items-center gap-6 group">
                                             <div className="p-5 bg-gray-50 dark:bg-up-dark rounded-2xl text-gray-400 group-hover:text-up-accent shadow-sm">
                                                 <TrendingUp size={32} />
@@ -588,7 +600,7 @@ const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose
                         )}
                     </div>
 
-                    <div className="w-[400px] border-l border-gray-100 dark:border-gray-800 bg-white dark:bg-up-dark/10 p-12 space-y-12 overflow-y-auto custom-scrollbar shrink-0">
+                    <div className="w-full md:w-[400px] border-t md:border-t-0 md:border-l border-gray-100 dark:border-gray-800 bg-white dark:bg-up-dark/10 p-6 md:p-12 space-y-12 overflow-y-auto custom-scrollbar shrink-0">
                         <div>
                             <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
                                 <Layout size={14} className="text-up-accent" /> Propriedades da Conta
@@ -727,7 +739,7 @@ const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose
                                     </div>
                                 </div>
 
-                                <div className="pt-10 border-t border-gray-100 dark:border-gray-800">
+                                <div className="pt-10 border-t border-gray-100 dark:border-gray-800 hidden md:block">
                                     <button className="w-full py-4 rounded-2xl bg-up-dark text-white font-black text-xs uppercase tracking-widest hover:bg-up-accent hover:text-up-dark transition-all shadow-xl shadow-up-dark/10 flex items-center justify-center gap-3">
                                         <ArrowRight size={18} /> Resumo do Dashboard
                                     </button>

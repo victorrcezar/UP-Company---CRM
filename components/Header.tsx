@@ -121,8 +121,8 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   };
 
   return (
-    <header className="h-20 glass sticky top-0 z-30 flex items-center justify-between px-6 md:px-8 transition-colors duration-300">
-      <div className="flex items-center gap-4 md:gap-6">
+    <header className="h-16 md:h-20 glass sticky top-0 z-40 flex items-center justify-between px-4 md:px-8 transition-colors duration-300">
+      <div className="flex items-center gap-4">
         <button 
           onClick={toggleSidebar} 
           className="md:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl active:scale-95 transition-all"
@@ -130,11 +130,16 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
           <Menu size={24} />
         </button>
         
+        {/* Mobile Title (When Sidebar is closed) */}
+        <div className="md:hidden flex items-center gap-2">
+             <img src="https://static.wixstatic.com/media/1f17f3_1e2b54d2fd894dd997c6cbc18e940576~mv2.png" className="h-6 w-auto" alt="Logo" />
+        </div>
+
         {user?.role === 'super_admin' && (
-            <div className="relative" ref={tenantSwitcherRef}>
+            <div className="relative hidden md:block" ref={tenantSwitcherRef}>
                 <button 
                     onClick={() => setShowTenantSwitcher(!showTenantSwitcher)}
-                    className="hidden md:flex items-center gap-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 px-3 py-2 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm hover:shadow-md active:scale-95"
+                    className="flex items-center gap-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 px-3 py-2 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm hover:shadow-md active:scale-95"
                 >
                     <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 p-1 border border-slate-200 dark:border-slate-700">
                         {currentTenant?.logoUrl ? (
@@ -184,7 +189,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             </div>
         )}
 
-        <div className={`hidden md:flex items-center bg-slate-100/50 dark:bg-slate-900/50 rounded-2xl px-4 py-2.5 border border-transparent focus-within:border-blue-500 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:ring-4 focus-within:ring-blue-500/10 transition-all duration-300 ${user?.role === 'super_admin' ? 'w-64 focus-within:w-80' : 'w-96 focus-within:w-[28rem]'}`}>
+        <div className={`hidden lg:flex items-center bg-slate-100/50 dark:bg-slate-900/50 rounded-2xl px-4 py-2.5 border border-transparent focus-within:border-blue-500 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:ring-4 focus-within:ring-blue-500/10 transition-all duration-300 ${user?.role === 'super_admin' ? 'w-64 focus-within:w-80' : 'w-96 focus-within:w-[28rem]'}`}>
           <Search size={18} className="text-slate-400" />
           <input 
             type="text" 
@@ -194,7 +199,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 md:gap-6">
+      <div className="flex items-center gap-2 md:gap-6">
         <div className="hidden md:flex flex-col items-center justify-center bg-white dark:bg-slate-900 rounded-xl px-4 py-1.5 border border-slate-200 dark:border-slate-800 shadow-sm">
             <span className="text-lg font-black text-slate-800 dark:text-slate-200 font-mono leading-none tracking-widest tabular-nums">
                 {dateTime.time}
@@ -206,7 +211,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
 
         <button 
           onClick={toggleTheme} 
-          className="p-2.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all hover:rotate-12 active:scale-95"
+          className="p-2 md:p-2.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all hover:rotate-12 active:scale-95"
         >
           {darkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} />}
         </button>
@@ -214,7 +219,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
         <div className="relative flex items-center" ref={notificationRef}>
           <button 
             onClick={() => setShowNotifications(!showNotifications)}
-            className={`p-2.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full relative transition-all active:scale-95 ${showNotifications ? 'bg-blue-50 text-blue-500 dark:bg-slate-800' : ''}`}
+            className={`p-2 md:p-2.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full relative transition-all active:scale-95 ${showNotifications ? 'bg-blue-50 text-blue-500 dark:bg-slate-800' : ''}`}
           >
             <Bell size={20} />
             {unreadCount > 0 && (
@@ -223,7 +228,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 top-16 w-80 md:w-96 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl shadow-slate-200/50 dark:shadow-black/50 border border-slate-200 dark:border-slate-800 overflow-hidden animate-scale-up origin-top-right z-50">
+            <div className="absolute right-[-60px] md:right-0 top-14 md:top-16 w-[300px] md:w-96 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl shadow-slate-200/50 dark:shadow-black/50 border border-slate-200 dark:border-slate-800 overflow-hidden animate-scale-up origin-top-right z-50">
               <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 sticky top-0 z-10">
                 {!showSettings ? (
                     <>
@@ -280,14 +285,14 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
           )}
         </div>
 
-        <div className="flex items-center gap-3 pl-4 md:pl-6 border-l border-slate-200 dark:border-slate-800 relative group">
+        <div className="flex items-center gap-3 pl-2 md:pl-6 border-l border-slate-200 dark:border-slate-800 relative group">
           <div className="text-right hidden sm:block">
             <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{user?.name || 'User'}</p>
             <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{user?.role === 'super_admin' ? 'Gestor Master' : 'Agente'}</p>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-slate-900 to-slate-700 dark:from-slate-800 dark:to-slate-600 p-[2px] cursor-pointer hover:scale-105 transition-transform shadow-lg">
+          <div className="w-9 h-9 md:w-11 md:h-11 rounded-2xl bg-gradient-to-tr from-slate-900 to-slate-700 dark:from-slate-800 dark:to-slate-600 p-[2px] cursor-pointer hover:scale-105 transition-transform shadow-lg">
              <div className="w-full h-full rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center">
-                <User size={20} className="text-slate-700 dark:text-slate-300" />
+                <User size={18} className="text-slate-700 dark:text-slate-300 md:w-5 md:h-5" />
              </div>
           </div>
 

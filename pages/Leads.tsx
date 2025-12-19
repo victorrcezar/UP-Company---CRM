@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { db } from '../services/mockDb';
 import { Lead, Tag, Client } from '../types';
@@ -181,7 +182,7 @@ const Leads = () => {
   };
 
   return (
-    <div className="animate-fade-in relative">
+    <div className="animate-fade-in relative pb-20">
       {toast && toast.show && (
           <Toast 
             message={toast.message} 
@@ -190,24 +191,27 @@ const Leads = () => {
           />
       )}
 
-      <div className="flex justify-between items-center mb-8">
+      {/* Responsive Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-up-dark dark:text-white">Gerenciamento de Leads</h1>
-          <p className="text-gray-500 text-sm mt-1">Visualize e gerencie seus prospecções ativas.</p>
+          <h1 className="text-2xl font-bold text-up-dark dark:text-white leading-tight">Gerenciamento de Leads</h1>
+          <p className="text-gray-500 text-sm mt-1">Visualize e gerencie suas prospecções ativas.</p>
         </div>
-        <div className="flex items-center gap-4">
+        
+        {/* Mobile: Stack vertically for better touch targets and text fit */}
+        <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
             <button 
                 onClick={() => setShowClosed(!showClosed)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all border ${showClosed ? 'bg-up-accent/10 border-up-accent text-up-accent' : 'bg-white dark:bg-up-deep border-gray-200 dark:border-gray-700 text-gray-500'}`}
+                className={`flex items-center justify-center gap-2 px-4 py-3 md:py-2.5 rounded-xl text-sm font-bold transition-all border w-full sm:w-auto whitespace-nowrap ${showClosed ? 'bg-up-accent/10 border-up-accent text-up-accent' : 'bg-white dark:bg-up-deep border-gray-200 dark:border-gray-700 text-gray-500'}`}
             >
-                {showClosed ? <Eye size={18} /> : <EyeOff size={18} />}
+                {showClosed ? <Eye size={16} /> : <EyeOff size={16} />}
                 {showClosed ? 'Ocultar Concluídos' : 'Exibir Concluídos'}
             </button>
             <button 
                 onClick={() => { setEditingLeadId(null); setIsModalOpen(true); }}
-                className="bg-up-dark text-white px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm font-medium hover:bg-opacity-90 shadow-lg shadow-up-dark/20 transition-all active:scale-95"
+                className="bg-up-dark text-white px-4 py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm font-medium hover:bg-opacity-90 shadow-lg shadow-up-dark/20 transition-all active:scale-95 w-full sm:w-auto whitespace-nowrap"
             >
-                <Plus size={18} /> Novo Lead
+                <Plus size={16} /> Novo Lead
             </button>
         </div>
       </div>

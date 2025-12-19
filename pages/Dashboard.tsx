@@ -126,14 +126,14 @@ const Dashboard = () => {
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 animate-slide-up">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Dashboard</h1>
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Dashboard</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 font-medium">Visão geral da performance comercial.</p>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full md:w-auto">
             <button 
                 onClick={() => navigate('/leads', { state: { openCreateModal: true } })} 
-                className="bg-up-accent text-white px-8 py-3.5 rounded-2xl text-xs font-black hover:bg-blue-600 transition-all shadow-xl shadow-blue-500/20 hover:shadow-blue-500/40 uppercase tracking-widest hover:scale-[1.02] active:scale-95 flex items-center gap-2 group"
+                className="w-full md:w-auto bg-up-accent text-white px-8 py-3.5 rounded-2xl text-xs font-black hover:bg-blue-600 transition-all shadow-xl shadow-blue-500/20 hover:shadow-blue-500/40 uppercase tracking-widest hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 group"
             >
                 <Zap size={16} className="fill-white" />
                 Novo Lead
@@ -141,16 +141,16 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <StatCard title="Leads Ativos" value={stats.totalLeads} trend={stats.totalLeads > 0 ? "+100%" : "0%"} icon={Users} color="text-blue-500 bg-blue-500" delay={100} />
         <StatCard title="Receita (MRR)" value={`R$ ${stats.monthlyRevenue.toLocaleString('pt-BR')}`} trend={stats.monthlyRevenue > 0 ? "+100%" : "0%"} icon={DollarSign} color="text-green-500 bg-green-500" delay={200} />
         <StatCard title="Conversão" value={`${stats.conversionRate}%`} trend={stats.conversionRate > 0 ? "+100%" : "0%"} icon={Target} color="text-purple-500 bg-purple-500" delay={300} />
         <StatCard title="Ticket Médio" value={`R$ ${stats.averageTicket.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`} trend={stats.averageTicket > 0 ? "+100%" : "0%"} icon={TrendingUp} color="text-orange-500 bg-orange-500" delay={400} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white dark:bg-up-surface p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800/50 opacity-0 animate-slide-up" style={{ animationDelay: '500ms' }}>
-          <div className="flex justify-between items-center mb-10">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="lg:col-span-2 bg-white dark:bg-up-surface p-5 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800/50 opacity-0 animate-slide-up" style={{ animationDelay: '500ms' }}>
+          <div className="flex justify-between items-center mb-6 md:mb-10">
             <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2">
                 <span className="w-2 h-8 bg-blue-500 rounded-full"></span> Fluxo de Demanda
             </h3>
@@ -158,7 +158,7 @@ const Dashboard = () => {
                 <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div> Tempo Real
             </div>
           </div>
-          <div className="h-80">
+          <div className="h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={flowData}>
                 <defs>
@@ -195,7 +195,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-up-surface p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800/50 flex flex-col opacity-0 animate-slide-up" style={{ animationDelay: '600ms' }}>
+        <div className="bg-white dark:bg-up-surface p-5 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800/50 flex flex-col opacity-0 animate-slide-up" style={{ animationDelay: '600ms' }}>
             <h3 className="text-xs font-black text-slate-900 dark:text-white mb-8 flex items-center gap-2 uppercase tracking-[0.2em]">
                 <PieIcon size={16} className="text-up-accent" /> Canais de Entrada
             </h3>
@@ -249,7 +249,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-up-surface p-10 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800/50 opacity-0 animate-slide-up" style={{ animationDelay: '700ms' }}>
+      <div className="bg-white dark:bg-up-surface p-5 md:p-10 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800/50 opacity-0 animate-slide-up" style={{ animationDelay: '700ms' }}>
         <div className="flex justify-between items-center mb-10">
             <h3 className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-2 uppercase tracking-[0.2em]">
                 <Clock size={16} className="text-up-accent" /> Agenda Prioritária

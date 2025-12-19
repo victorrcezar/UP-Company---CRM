@@ -50,7 +50,6 @@ const Pipeline = () => {
   const handleDragStart = (e: React.DragEvent, id: string) => {
     setDraggedLeadId(id);
     e.dataTransfer.effectAllowed = "move";
-    // Torna a imagem de arrasto transparente para ver o card original ou um customizado
     e.dataTransfer.setData('text/plain', id);
   };
 
@@ -84,8 +83,8 @@ const Pipeline = () => {
   );
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col animate-fade-in">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 px-1">
+    <div className="h-[calc(100dvh-5rem)] md:h-[calc(100vh-6rem)] flex flex-col animate-fade-in">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-1">
         <div>
             <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Fluxo Comercial</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Visualize sua força de vendas por estágios.</p>
@@ -103,17 +102,17 @@ const Pipeline = () => {
             </div>
             <button 
                 onClick={() => navigate('/leads', { state: { openCreateModal: true } })}
-                className="bg-slate-900 dark:bg-up-accent dark:text-white text-white px-6 py-2.5 rounded-xl text-xs font-black hover:opacity-90 transition-all uppercase tracking-widest shadow-lg flex items-center gap-2"
+                className="bg-slate-900 dark:bg-up-accent dark:text-white text-white px-6 py-2.5 rounded-xl text-xs font-black hover:opacity-90 transition-all uppercase tracking-widest shadow-lg flex items-center gap-2 whitespace-nowrap"
             >
                 <Plus size={14} /> Novo
             </button>
         </div>
       </div>
 
-      {/* Kanban Board Container */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden pb-4 custom-scrollbar snap-x snap-mandatory md:snap-none">
-        <div className="flex gap-5 h-full min-w-[1700px] px-1">
-          {PIPELINE_COLUMNS.map((col, colIdx) => {
+      {/* Kanban Board Container - Mobile Horizontal Scroll Fix */}
+      <div className="flex-1 overflow-x-auto overflow-y-hidden pb-4 custom-scrollbar">
+        <div className="flex gap-5 h-full min-w-[1700px] px-1 md:px-0">
+          {PIPELINE_COLUMNS.map((col) => {
             const columnLeads = filteredLeads.filter(l => l.status === col.id);
             const totalValue = columnLeads.reduce((acc, curr) => acc + (curr.value || 0), 0);
             const isDragOver = dragOverColumn === col.id;
@@ -121,7 +120,7 @@ const Pipeline = () => {
             return (
               <div 
                 key={col.id}
-                className={`flex-1 min-w-[280px] flex flex-col bg-slate-100/50 dark:bg-slate-900/20 rounded-[2rem] border transition-all duration-300 snap-center
+                className={`w-[280px] md:w-[320px] flex flex-col bg-slate-100/50 dark:bg-slate-900/20 rounded-[2rem] border transition-all duration-300
                     ${isDragOver 
                         ? 'border-blue-500 ring-4 ring-blue-500/10 scale-[1.01] bg-blue-50/50 dark:bg-blue-900/10' 
                         : 'border-transparent hover:border-slate-200 dark:hover:border-slate-700/50'

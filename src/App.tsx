@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
@@ -6,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Leads from './pages/Leads';
 import Pipeline from './pages/Pipeline';
 import Agenda from './pages/Agenda';
+import Clients from './pages/Clients';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -44,25 +46,24 @@ const MainLayout = () => {
       <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
         <Header toggleSidebar={toggleSidebar} />
         
-        <main className="flex-1 overflow-auto p-6 md:p-8 scroll-smooth relative">
+        <main className="flex-1 overflow-auto p-4 md:p-8 scroll-smooth relative">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/agenda" element={<Agenda />} />
             <Route path="/leads" element={<Leads />} />
             <Route path="/pipeline" element={<Pipeline />} />
+            <Route path="/clients" element={<Clients />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>
       
-      {/* Mobile Overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* 
+        Duplicate overlay removed. 
+        Sidebar.tsx now handles the z-index 60 backdrop internally 
+        to ensure proper layering over the header (z-40). 
+      */}
     </div>
   );
 };

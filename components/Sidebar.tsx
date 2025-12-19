@@ -28,24 +28,25 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, t
 
   return (
     <>
-      {/* Mobile Backdrop */}
+      {/* Mobile Backdrop - Z-Index muito alto */}
       <div 
-        className={`fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 transition-opacity duration-300 md:hidden ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[60] transition-opacity duration-300 md:hidden ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={toggleSidebar}
       />
 
       <aside className={`
-        fixed inset-y-0 left-0 z-50 
+        fixed inset-y-0 left-0 z-[70] 
         bg-[#0F172A] text-slate-300
-        transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]
+        transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]
         border-r border-slate-800
         flex flex-col shadow-2xl
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
         md:relative md:translate-x-0
         ${isCollapsed ? 'md:w-[5.5rem]' : 'md:w-[17rem]'}
+        w-[80%] max-w-[300px] md:w-auto
       `}>
         
-        {/* Toggle Button - Desktop */}
+        {/* Toggle Button - Desktop Only */}
         <button 
           onClick={toggleCollapse}
           className="hidden md:flex absolute -right-3 top-10 w-6 h-6 bg-[#0F172A] border border-slate-700 rounded-full items-center justify-center text-slate-400 hover:text-white hover:border-blue-500 hover:bg-blue-600 shadow-lg z-50 transition-all duration-300 hover:scale-110 group"
@@ -54,33 +55,34 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, t
         </button>
 
         {/* Header */}
-        <div className={`h-28 flex flex-col items-center justify-center transition-all duration-500 ${isCollapsed ? 'px-2' : 'px-6'}`}>
+        <div className={`h-24 flex flex-col items-center justify-center transition-all duration-500 ${isCollapsed ? 'px-2' : 'px-6'}`}>
           <div className="relative group cursor-pointer" onClick={() => !isCollapsed && window.location.reload()}>
               <img 
                   src={UP_LOGO_URL} 
                   alt="UP! Company" 
                   className={`object-contain transition-all duration-500 filter brightness-110 drop-shadow-[0_0_10px_rgba(59,130,246,0.5)] ${isCollapsed ? 'w-10 h-10' : 'h-8 w-auto'}`} 
               />
-              {/* Glow Effect */}
-              <div className="absolute inset-0 bg-blue-500/30 blur-xl rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-500"></div>
           </div>
           
-          <div className={`overflow-hidden transition-all duration-500 flex flex-col items-center ${isCollapsed ? 'h-0 opacity-0' : 'h-auto opacity-100 mt-4'}`}>
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] text-center truncate w-full">
+          <div className={`overflow-hidden transition-all duration-500 flex flex-col items-center ${isCollapsed ? 'h-0 opacity-0' : 'h-auto opacity-100 mt-3'}`}>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] text-center truncate w-full px-2">
                   {currentTenant?.name || 'UP! CRM'}
               </span>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto custom-scrollbar overflow-x-hidden">
+        <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto custom-scrollbar overflow-x-hidden">
           {navItems.map((item) => {
             const active = isActive(item.path);
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={() => { if (window.innerWidth < 768) toggleSidebar(); }}
+                onClick={() => { 
+                    // Fecha sidebar no mobile ao clicar
+                    if (window.innerWidth < 768) toggleSidebar(); 
+                }}
                 title={isCollapsed ? item.name : ''}
                 className={`
                   group flex items-center gap-3 px-3.5 py-3.5 rounded-2xl transition-all duration-300 font-medium text-sm relative overflow-hidden
@@ -114,11 +116,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, t
         </nav>
 
         {/* Footer */}
-        <div className="p-4 mx-2 mb-2 bg-[#0F172A] border-t border-slate-800/50">
+        <div className="p-4 mx-2 mb-2 bg-[#0F172A] border-t border-slate-800/50 pb-safe">
            <div className={`flex flex-col gap-1 transition-all duration-300 ${isCollapsed ? 'items-center' : ''}`}>
              <Link 
                 to="/settings" 
-                title="Configurações" 
+                onClick={() => { if (window.innerWidth < 768) toggleSidebar(); }}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-white/5 hover:text-white transition-all font-medium text-sm group ${isCollapsed ? 'justify-center w-12' : 'w-full'}`}
              >
                 <Settings size={20} className="shrink-0 group-hover:rotate-90 transition-transform duration-500" />
@@ -126,7 +128,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, t
               </Link>
              <button 
                 onClick={logout} 
-                title="Sair" 
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-red-500/10 hover:text-red-400 transition-all font-medium text-sm group ${isCollapsed ? 'justify-center w-12' : 'w-full'}`}
              >
                 <LogOut size={20} className="shrink-0 group-hover:-translate-x-1 transition-transform" />

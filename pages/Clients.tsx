@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../services/mockDb';
 import { Client } from '../types';
-import { Search, Handshake, DollarSign, Clock, MoreHorizontal, Mail, TrendingUp, Users, UserPlus, AlertTriangle, CalendarCheck, Trash2, RefreshCw, Edit } from 'lucide-react';
+import { Search, Handshake, DollarSign, Clock, MoreHorizontal, Mail, TrendingUp, Users, UserPlus, AlertTriangle, CalendarCheck, Trash2, RefreshCw, Edit, Phone } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import ClientDetailsModal from '../components/clients/ClientDetailsModal';
 import ClientModal from '../components/clients/ClientModal';
@@ -121,7 +121,7 @@ const Clients = () => {
 
   return (
     <div className="space-y-8 animate-fade-in pb-10">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h1 className="text-3xl font-black text-up-dark dark:text-white flex items-center gap-3 uppercase tracking-tight">
               <Handshake className="text-up-accent" size={32} /> Gestão de Clientes
@@ -131,7 +131,7 @@ const Clients = () => {
         <button 
             type="button"
             onClick={handleCreateNew}
-            className="bg-up-dark text-white px-6 py-2.5 rounded-xl text-sm font-black hover:bg-opacity-90 shadow-lg shadow-up-dark/20 transition-all active:scale-95 flex items-center gap-2 uppercase tracking-widest"
+            className="bg-up-dark text-white px-6 py-2.5 rounded-xl text-sm font-black hover:bg-opacity-90 shadow-lg shadow-up-dark/20 transition-all active:scale-95 flex items-center gap-2 uppercase tracking-widest w-full md:w-auto justify-center"
         >
             <UserPlus size={18} /> Novo Cliente
         </button>
@@ -139,7 +139,7 @@ const Clients = () => {
 
       {/* KPI Cards Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white dark:bg-up-deep p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between h-40">
+          <div className="bg-white dark:bg-up-deep p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between h-32 md:h-40">
               <div className="flex justify-between items-start">
                   <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-2xl text-green-600">
                       <TrendingUp size={24} />
@@ -152,7 +152,7 @@ const Clients = () => {
               </div>
           </div>
 
-          <div className="bg-white dark:bg-up-deep p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between h-40">
+          <div className="bg-white dark:bg-up-deep p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between h-32 md:h-40">
               <div className="flex justify-between items-start">
                   <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl text-blue-600">
                       <Users size={24} />
@@ -165,7 +165,7 @@ const Clients = () => {
               </div>
           </div>
 
-          <div className="bg-white dark:bg-up-deep p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between h-40">
+          <div className="bg-white dark:bg-up-deep p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between h-32 md:h-40">
               <div className="flex justify-between items-start">
                   <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-2xl text-purple-600">
                       <Handshake size={24} />
@@ -187,16 +187,16 @@ const Clients = () => {
                 placeholder="Buscar cliente..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-up-dark/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-up-accent/20"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-up-dark/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-up-accent/20 dark:text-white"
               />
           </div>
-          <div className="flex gap-1 bg-gray-50 dark:bg-up-dark/50 p-1 rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="flex gap-1 bg-gray-50 dark:bg-up-dark/50 p-1 rounded-xl border border-gray-200 dark:border-gray-700 overflow-x-auto">
               {(['All', 'Active', 'Inactive', 'Churn'] as const).map((s) => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => setStatusFilter(s)}
-                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${statusFilter === s ? 'bg-up-dark text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}
+                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all whitespace-nowrap ${statusFilter === s ? 'bg-up-dark text-white shadow-md' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                   >
                       {s === 'All' ? 'Todos' : s === 'Active' ? 'Ativos' : s === 'Inactive' ? 'Inativos' : 'Churn'}
                   </button>
@@ -204,7 +204,8 @@ const Clients = () => {
           </div>
       </div>
 
-      <div className="bg-white dark:bg-up-deep rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden relative">
+      {/* Desktop Table View */}
+      <div className="hidden md:block bg-white dark:bg-up-deep rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden relative">
           <div className="overflow-x-auto">
               <table className="w-full text-left">
                   <thead className="bg-gray-50 dark:bg-up-dark/50 border-b border-gray-100 dark:border-gray-700">
@@ -278,6 +279,60 @@ const Clients = () => {
                   </tbody>
               </table>
           </div>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-4">
+          {filteredClients.map((client) => (
+              <div 
+                  key={client.id}
+                  onClick={() => { setSelectedClientId(client.id); setIsDetailsOpen(true); }}
+                  className="bg-white dark:bg-up-deep rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
+              >
+                  <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-2xl bg-up-dark text-up-accent flex items-center justify-center font-black shadow-lg text-lg">
+                              {client.name.charAt(0)}
+                          </div>
+                          <div>
+                              <h3 className="font-bold text-up-dark dark:text-white leading-tight">{client.name}</h3>
+                              <p className="text-[10px] text-gray-500 font-bold uppercase mt-0.5">{client.companyName || client.email}</p>
+                          </div>
+                      </div>
+                      {getStatusBadge(client.status)}
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-4 border-t border-gray-50 dark:border-gray-800">
+                      <div>
+                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Recorrência</p>
+                          <p className="text-base font-black text-up-dark dark:text-white">R$ {client.contractValue.toLocaleString('pt-BR')}</p>
+                      </div>
+                      
+                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                          <a 
+                              href={`https://wa.me/${client.phone.replace(/\D/g, '')}`} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="w-9 h-9 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center"
+                          >
+                              <WhatsAppLogo />
+                          </a>
+                          <button 
+                              onClick={(e) => handleEditClient(e, client)}
+                              className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center"
+                          >
+                              <Edit size={16} />
+                          </button>
+                          <button 
+                              onClick={(e) => handleDeleteClient(e, client.id, client.name)}
+                              className="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 flex items-center justify-center"
+                          >
+                              <Trash2 size={16} />
+                          </button>
+                      </div>
+                  </div>
+              </div>
+          ))}
       </div>
 
       <ClientDetailsModal isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} clientId={selectedClientId} onUpdate={fetchClients} />
