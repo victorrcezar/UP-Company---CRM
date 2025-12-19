@@ -121,9 +121,11 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   };
 
   return (
-    <header className="h-16 md:h-20 glass sticky top-0 z-40 flex items-center justify-between px-4 md:px-8 transition-colors duration-300">
+    <header className="h-16 md:h-20 sticky top-0 z-40 flex items-center justify-between px-4 md:px-8 transition-colors duration-300
+        bg-white/70 dark:bg-[#020617]/70 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50">
+      
       <div className="flex items-center gap-4">
-        {/* Menu button removed on mobile, kept hidden for logical consistency if we ever want to re-enable on specific breakpoints */}
+        {/* Menu button hidden on mobile usually, controlled by bottom nav or sidebar logic */}
         <button 
           onClick={toggleSidebar} 
           className="hidden md:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl active:scale-95 transition-all"
@@ -131,7 +133,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
           <Menu size={24} />
         </button>
         
-        {/* Mobile Title (Always visible now on mobile since sidebar toggle is gone) */}
+        {/* Mobile Title */}
         <div className="md:hidden flex items-center gap-2">
              <img src="https://static.wixstatic.com/media/1f17f3_1e2b54d2fd894dd997c6cbc18e940576~mv2.png" className="h-7 w-auto" alt="Logo" />
         </div>
@@ -140,9 +142,9 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             <div className="relative hidden md:block" ref={tenantSwitcherRef}>
                 <button 
                     onClick={() => setShowTenantSwitcher(!showTenantSwitcher)}
-                    className="flex items-center gap-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 px-3 py-2 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm hover:shadow-md active:scale-95"
+                    className="flex items-center gap-3 bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-xl hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm hover:shadow-md active:scale-95"
                 >
-                    <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 p-1 border border-slate-200 dark:border-slate-700">
+                    <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0 p-1 border border-slate-200 dark:border-slate-600">
                         {currentTenant?.logoUrl ? (
                             <img src={currentTenant.logoUrl} alt="Logo" className="w-full h-full object-contain" />
                         ) : (
@@ -150,7 +152,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
                         )}
                     </div>
                     <div className="text-left hidden lg:block">
-                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Visualizando</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Visualizando</p>
                         <p className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-none truncate max-w-[150px]">{currentTenant?.name}</p>
                     </div>
                     <ChevronDown size={14} className={`text-slate-400 transition-transform duration-300 ${showTenantSwitcher ? 'rotate-180' : ''}`} />
@@ -190,7 +192,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             </div>
         )}
 
-        <div className={`hidden lg:flex items-center bg-slate-100/50 dark:bg-slate-900/50 rounded-2xl px-4 py-2.5 border border-transparent focus-within:border-blue-500 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:ring-4 focus-within:ring-blue-500/10 transition-all duration-300 ${user?.role === 'super_admin' ? 'w-64 focus-within:w-80' : 'w-96 focus-within:w-[28rem]'}`}>
+        <div className={`hidden lg:flex items-center bg-white/50 dark:bg-white/5 rounded-2xl px-4 py-2.5 border border-transparent focus-within:border-blue-500 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:ring-4 focus-within:ring-blue-500/10 transition-all duration-300 ${user?.role === 'super_admin' ? 'w-64 focus-within:w-80' : 'w-96 focus-within:w-[28rem]'}`}>
           <Search size={18} className="text-slate-400" />
           <input 
             type="text" 
@@ -201,7 +203,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
       </div>
 
       <div className="flex items-center gap-2 md:gap-6">
-        <div className="hidden md:flex flex-col items-center justify-center bg-white dark:bg-slate-900 rounded-xl px-4 py-1.5 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="hidden md:flex flex-col items-center justify-center bg-white/60 dark:bg-white/5 rounded-xl px-4 py-1.5 border border-slate-200 dark:border-slate-700/50 shadow-sm backdrop-blur-sm">
             <span className="text-lg font-black text-slate-800 dark:text-slate-200 font-mono leading-none tracking-widest tabular-nums">
                 {dateTime.time}
             </span>
@@ -212,7 +214,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
 
         <button 
           onClick={toggleTheme} 
-          className="p-2 md:p-2.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all hover:rotate-12 active:scale-95"
+          className="p-2 md:p-2.5 text-slate-500 hover:bg-white dark:hover:bg-slate-800 rounded-full transition-all hover:rotate-12 active:scale-95 border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
         >
           {darkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} />}
         </button>
@@ -220,7 +222,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
         <div className="relative flex items-center" ref={notificationRef}>
           <button 
             onClick={() => setShowNotifications(!showNotifications)}
-            className={`p-2 md:p-2.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full relative transition-all active:scale-95 ${showNotifications ? 'bg-blue-50 text-blue-500 dark:bg-slate-800' : ''}`}
+            className={`p-2 md:p-2.5 text-slate-500 hover:bg-white dark:hover:bg-slate-800 rounded-full relative transition-all active:scale-95 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 ${showNotifications ? 'bg-blue-50 text-blue-500 dark:bg-slate-800' : ''}`}
           >
             <Bell size={20} />
             {unreadCount > 0 && (
@@ -230,6 +232,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
 
           {showNotifications && (
             <div className="absolute right-[-60px] md:right-0 top-14 md:top-16 w-[300px] md:w-96 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl shadow-slate-200/50 dark:shadow-black/50 border border-slate-200 dark:border-slate-800 overflow-hidden animate-scale-up origin-top-right z-50">
+              {/* Notification panel content remains same */}
               <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 sticky top-0 z-10">
                 {!showSettings ? (
                     <>
@@ -286,7 +289,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
           )}
         </div>
 
-        <div className="flex items-center gap-3 pl-2 md:pl-6 border-l border-slate-200 dark:border-slate-800 relative group">
+        <div className="flex items-center gap-3 pl-2 md:pl-6 border-l border-slate-200/50 dark:border-slate-700/50 relative group">
           <div className="text-right hidden sm:block">
             <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{user?.name || 'User'}</p>
             <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{user?.role === 'super_admin' ? 'Gestor Master' : 'Agente'}</p>

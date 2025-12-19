@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../services/mockDb';
 import { Client } from '../types';
-import { Search, Handshake, TrendingUp, Users, UserPlus, Trash2, RefreshCw, Edit } from 'lucide-react';
+import { Search, Handshake, TrendingUp, Users, UserPlus, Trash2, RefreshCw, Edit, Briefcase, Repeat } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import ClientDetailsModal from '../components/clients/ClientDetailsModal';
 import ClientModal from '../components/clients/ClientModal';
@@ -107,8 +107,16 @@ const Clients = () => {
 
   // KPI Calculations
   const activeClients = clients.filter(c => c.status === 'Active');
-  const mrr = activeClients.reduce((acc, c) => acc + (c.contractValue || 0), 0);
-  const tcv = activeClients.reduce((acc, c) => acc + ((c.contractValue || 0) * (c.contractDuration || 1)), 0);
+  
+  // MRR: Apenas contratos recorrentes (padrão)
+  const mrr = activeClients
+    .filter(c => c.contractModel === 'Recurring' || !c.contractModel)
+    .reduce((acc, c) => acc + (c.contractValue || 0), 0);
+  
+  // Projetos: Apenas contratos pontuais
+  const projectRevenue = activeClients
+    .filter(c => c.contractModel === 'OneOff')
+    .reduce((acc, c) => acc + (c.contractValue || 0), 0);
 
   if (loading && clients.length === 0) {
     return (
@@ -142,13 +150,13 @@ const Clients = () => {
           <div className="bg-white dark:bg-up-deep p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between h-auto min-h-[160px] md:h-40">
               <div className="flex justify-between items-start mb-4 md:mb-0">
                   <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-2xl text-green-600">
-                      <TrendingUp size={24} />
+                      <Repeat size={24} />
                   </div>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-right max-w-[60%] leading-tight">Recorrência Mensal (MRR)</p>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-right max-w-[60%] leading-tight">MRR (Recorrência)</p>
               </div>
               <div>
                   <h3 className="text-3xl font-black text-up-dark dark:text-white">R$ {mrr.toLocaleString('pt-BR')}</h3>
-                  <p className="text-xs text-gray-500 font-medium mt-1 truncate">Faturamento mensal atual</p>
+                  <p className="text-xs text-gray-500 font-medium mt-1 truncate">Faturamento mensal recorrente</p>
               </div>
           </div>
 
@@ -161,20 +169,20 @@ const Clients = () => {
               </div>
               <div>
                   <h3 className="text-3xl font-black text-up-dark dark:text-white">{activeClients.length} Clientes</h3>
-                  <p className="text-xs text-gray-500 font-medium mt-1 truncate">Contratos em vigor</p>
+                  <p className="text-xs text-gray-500 font-medium mt-1 truncate">Total de contratos ativos</p>
               </div>
           </div>
 
           <div className="bg-white dark:bg-up-deep p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between h-auto min-h-[160px] md:h-40">
               <div className="flex justify-between items-start mb-4 md:mb-0">
                   <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-2xl text-purple-600">
-                      <Handshake size={24} />
+                      <Briefcase size={24} />
                   </div>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-right max-w-[60%] leading-tight">Valor em Carteira (TCV)</p>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-right max-w-[60%] leading-tight">Receita Única</p>
               </div>
               <div>
-                  <h3 className="text-3xl font-black text-up-dark dark:text-white">R$ {tcv.toLocaleString('pt-BR')}</h3>
-                  <p className="text-xs text-gray-500 font-medium mt-1 truncate">Soma de todos os contratos ativos</p>
+                  <h3 className="text-3xl font-black text-up-dark dark:text-white">R$ {projectRevenue.toLocaleString('pt-BR')}</h3>
+                  <p className="text-xs text-gray-500 font-medium mt-1 truncate">Faturamento pontual ativo</p>
               </div>
           </div>
       </div>
@@ -211,13 +219,16 @@ const Clients = () => {
                   <thead className="bg-gray-50 dark:bg-up-dark/50 border-b border-gray-100 dark:border-gray-700">
                       <tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                           <th className="px-6 py-4">Cliente / E-mail</th>
-                          <th className="px-6 py-4">Recorrência</th>
+                          <th className="px-6 py-4">Modelo</th>
+                          <th className="px-6 py-4">Valor</th>
                           <th className="px-6 py-4">Status</th>
                           <th className="px-6 py-4 text-right">Ações</th>
                       </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
-                      {filteredClients.map((client) => (
+                      {filteredClients.map((client) => {
+                          const isProject = client.contractModel === 'OneOff';
+                          return (
                           <tr 
                             key={client.id} 
                             onClick={() => { setSelectedClientId(client.id); setIsDetailsOpen(true); }} 
@@ -235,8 +246,15 @@ const Clients = () => {
                                   </div>
                               </td>
                               <td className="px-6 py-5">
+                                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border ${isProject ? 'bg-purple-50 text-purple-700 border-purple-100' : 'bg-blue-50 text-blue-700 border-blue-100'}`}>
+                                      {isProject ? <Briefcase size={12} /> : <Repeat size={12} />}
+                                      {isProject ? 'Único' : 'Assinatura'}
+                                  </span>
+                              </td>
+                              <td className="px-6 py-5">
                                   <div className="font-black text-up-dark dark:text-white text-sm">
                                       R$ {client.contractValue.toLocaleString('pt-BR')}
+                                      {!isProject && <span className="text-[10px] text-gray-400 ml-1 font-medium">/mês</span>}
                                   </div>
                               </td>
                               <td className="px-6 py-5">
@@ -275,7 +293,7 @@ const Clients = () => {
                                   </div>
                               </td>
                           </tr>
-                      ))}
+                      )})}
                   </tbody>
               </table>
           </div>
@@ -283,7 +301,9 @@ const Clients = () => {
 
       {/* Mobile Card View */}
       <div className="md:hidden space-y-4">
-          {filteredClients.map((client) => (
+          {filteredClients.map((client) => {
+              const isProject = client.contractModel === 'OneOff';
+              return (
               <div 
                   key={client.id}
                   onClick={() => { setSelectedClientId(client.id); setIsDetailsOpen(true); }}
@@ -304,7 +324,10 @@ const Clients = () => {
                   
                   <div className="flex justify-between items-center pt-4 border-t border-gray-50 dark:border-gray-800">
                       <div>
-                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Recorrência</p>
+                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5 flex items-center gap-1">
+                              {isProject ? <Briefcase size={10} /> : <Repeat size={10} />}
+                              {isProject ? 'Único' : 'Mensal'}
+                          </p>
                           <p className="text-base font-black text-up-dark dark:text-white">R$ {client.contractValue.toLocaleString('pt-BR')}</p>
                       </div>
                       
@@ -332,7 +355,7 @@ const Clients = () => {
                       </div>
                   </div>
               </div>
-          ))}
+          )})}
       </div>
 
       <ClientDetailsModal isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} clientId={selectedClientId} onUpdate={fetchClients} />

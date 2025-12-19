@@ -78,10 +78,11 @@ export interface Client {
   email: string;
   phone: string;
   status: 'Active' | 'Inactive' | 'Churn';
+  contractModel?: 'Recurring' | 'OneOff'; // Novo campo
   healthScore: number; 
   contractValue: number;
   contractStartDate: string;
-  contractDuration: 3 | 6 | 12;
+  contractDuration: number; // Alterado de 3 | 6 | 12 para number
   convertedFromLeadId?: string;
   notes?: string;
   tasks: Task[];

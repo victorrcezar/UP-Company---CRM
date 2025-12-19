@@ -6,7 +6,7 @@ import {
     Layout, ListTodo, CreditCard, History,
     Activity, TrendingUp, Zap, MessageSquare, ArrowRight,
     CheckCircle2, Circle, Plus, Trash2, XCircle,
-    ChevronDown, AlertTriangle, ToggleLeft, User, Building, DollarSign
+    ChevronDown, AlertTriangle, ToggleLeft, User, Building, DollarSign, Clock, Briefcase, Repeat
 } from 'lucide-react';
 import { db } from '../../services/mockDb';
 
@@ -25,14 +25,18 @@ const WhatsAppLogo = () => (
     </svg>
 );
 
-const formatPhone = (v: string) => {
-    v = v.replace(/\D/g, "");
-    if (v.length > 11) v = v.slice(0, 11);
-    if (v.length > 10) return v.replace(/^(\d{2})(\d{5})(\d{4}).*/, "($1) $2-$3");
-    if (v.length > 6) return v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, "($1) $2-$3");
-    if (v.length > 2) return v.replace(/^(\d{2})(\d{0,5}).*/, "($1) $2");
-    if (v.length > 0) return v.replace(/^(\d{0,2}).*/, "($1");
-    return v;
+const formatPhone = (value: string) => {
+    if (!value) return "";
+    const phoneNumber = value.replace(/\D/g, '');
+    const phoneNumberLength = phoneNumber.length;
+    if (phoneNumberLength < 3) return phoneNumber;
+    if (phoneNumberLength < 7) {
+        return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2)}`;
+    }
+    if (phoneNumberLength < 11) {
+        return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2, 6)}-${phoneNumber.slice(6, 10)}`;
+    }
+    return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2, 7)}-${phoneNumber.slice(7, 11)}`;
 };
 
 const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose, clientId, onUpdate }) => {
@@ -252,6 +256,40 @@ const ClientDetailsModal: React.FC<ClientDetailsModalProps> = ({ isOpen, onClose
                         />
                     ) : (
                         <p className="text-sm font-bold text-green-600 px-1 border-b border-transparent">R$ {client.contractValue.toLocaleString()}</p>
+                    )}
+                </div>
+
+                <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 flex items-center gap-1"><Clock size={10} /> Fidelidade / Modelo</label>
+                    {isEditing ? (
+                        <div className="relative">
+                            <select 
+                                value={formData.contractModel === 'OneOff' ? 'oneoff' : formData.contractDuration}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === 'oneoff') {
+                                        setFormData({...formData, contractModel: 'OneOff', contractDuration: 1 }); // 1 para evitar 0 em cálculos, mas marcado como OneOff
+                                    } else {
+                                        setFormData({...formData, contractModel: 'Recurring', contractDuration: Number(val) });
+                                    }
+                                }}
+                                className="w-full p-3 bg-gray-50 dark:bg-up-dark border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold outline-none dark:text-white appearance-none"
+                            >
+                                <option value="oneoff">Pagamento Único</option>
+                                <option value="3">3 Meses</option>
+                                <option value="6">6 Meses</option>
+                                <option value="12">12 Meses</option>
+                            </select>
+                            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                        </div>
+                    ) : (
+                        <p className="text-sm font-bold text-up-dark dark:text-white px-1 border-b border-transparent flex items-center gap-2">
+                            {client.contractModel === 'OneOff' ? (
+                                <><Briefcase size={14} className="text-purple-500" /> Pagamento Único</>
+                            ) : (
+                                <><Repeat size={14} className="text-blue-500" /> {client.contractDuration || 0} Meses</>
+                            )}
+                        </p>
                     )}
                 </div>
             </div>

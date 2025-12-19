@@ -28,17 +28,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, t
 
   return (
     <>
-      {/* Mobile Backdrop - Z-Index muito alto */}
+      {/* Mobile Backdrop */}
       <div 
-        className={`fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[60] transition-opacity duration-300 md:hidden ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] transition-opacity duration-300 md:hidden ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={toggleSidebar}
       />
 
       <aside className={`
         fixed inset-y-0 left-0 z-[70] 
-        bg-[#0F172A] text-slate-300
+        bg-[#020617]
+        border-r border-white/5
+        text-slate-400
         transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]
-        border-r border-slate-800
         flex flex-col shadow-2xl
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
         md:relative md:translate-x-0
@@ -46,21 +47,27 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, t
         w-[80%] max-w-[300px] md:w-auto
       `}>
         
+        {/* Background Gradients/Glows (Sutil, estilo Login) */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-[-10%] left-[-20%] w-[200px] h-[200px] bg-blue-600/10 rounded-full blur-[60px]"></div>
+            <div className="absolute bottom-[-10%] right-[-20%] w-[200px] h-[200px] bg-purple-600/10 rounded-full blur-[60px]"></div>
+        </div>
+
         {/* Toggle Button - Desktop Only */}
         <button 
           onClick={toggleCollapse}
-          className="hidden md:flex absolute -right-3 top-10 w-6 h-6 bg-[#0F172A] border border-slate-700 rounded-full items-center justify-center text-slate-400 hover:text-white hover:border-blue-500 hover:bg-blue-600 shadow-lg z-50 transition-all duration-300 hover:scale-110 group"
+          className="hidden md:flex absolute -right-3 top-10 w-6 h-6 bg-[#0F172A] border border-slate-700/50 rounded-full items-center justify-center text-slate-400 hover:text-white hover:border-blue-500 shadow-lg z-50 transition-all duration-300 hover:scale-110 group"
         >
           {isCollapsed ? <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" /> : <ChevronLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />}
         </button>
 
         {/* Header */}
-        <div className={`h-24 flex flex-col items-center justify-center transition-all duration-500 ${isCollapsed ? 'px-2' : 'px-6'}`}>
+        <div className={`h-24 flex flex-col items-center justify-center transition-all duration-500 relative z-10 ${isCollapsed ? 'px-2' : 'px-6'}`}>
           <div className="relative group cursor-pointer" onClick={() => !isCollapsed && window.location.reload()}>
               <img 
                   src={UP_LOGO_URL} 
                   alt="UP! Company" 
-                  className={`object-contain transition-all duration-500 filter brightness-110 drop-shadow-[0_0_10px_rgba(59,130,246,0.5)] ${isCollapsed ? 'w-10 h-10' : 'h-8 w-auto'}`} 
+                  className={`object-contain transition-all duration-500 filter brightness-0 invert drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] ${isCollapsed ? 'w-10 h-10' : 'h-8 w-auto'}`} 
               />
           </div>
           
@@ -72,7 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, t
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto custom-scrollbar overflow-x-hidden">
+        <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto custom-scrollbar overflow-x-hidden relative z-10">
           {navItems.map((item) => {
             const active = isActive(item.path);
             return (
@@ -80,22 +87,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, t
                 key={item.path}
                 to={item.path}
                 onClick={() => { 
-                    // Fecha sidebar no mobile ao clicar
                     if (window.innerWidth < 768) toggleSidebar(); 
                 }}
                 title={isCollapsed ? item.name : ''}
                 className={`
                   group flex items-center gap-3 px-3.5 py-3.5 rounded-2xl transition-all duration-300 font-medium text-sm relative overflow-hidden
                   ${active 
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-[0_8px_20px_-6px_rgba(59,130,246,0.4)] translate-y-[-1px]' 
-                      : 'text-slate-400 hover:bg-white/5 hover:text-white hover:translate-x-1'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-[0_0_20px_-5px_rgba(59,130,246,0.5)] translate-y-[-1px]' 
+                      : 'hover:bg-white/5 hover:text-white hover:translate-x-1'
                   } 
                   ${isCollapsed ? 'justify-center px-0 w-12 mx-auto' : ''}`
                 }
               >
                 <div className={`shrink-0 transition-all duration-300 relative z-10 ${isCollapsed ? 'scale-110' : ''}`}>
                     {React.cloneElement(item.icon as React.ReactElement, { 
-                      className: `${active ? 'animate-pulse' : ''}` 
+                      className: `${active ? 'animate-pulse' : 'text-slate-400 group-hover:text-white'}` 
                     })}
                 </div>
                 
@@ -116,19 +122,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, t
         </nav>
 
         {/* Footer */}
-        <div className="p-4 mx-2 mb-2 bg-[#0F172A] border-t border-slate-800/50 pb-safe">
+        <div className="p-4 mx-2 mb-2 border-t border-white/5 pb-safe relative z-10">
            <div className={`flex flex-col gap-1 transition-all duration-300 ${isCollapsed ? 'items-center' : ''}`}>
              <Link 
                 to="/settings" 
                 onClick={() => { if (window.innerWidth < 768) toggleSidebar(); }}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-white/5 hover:text-white transition-all font-medium text-sm group ${isCollapsed ? 'justify-center w-12' : 'w-full'}`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-all font-medium text-sm group ${isCollapsed ? 'justify-center w-12' : 'w-full'}`}
              >
                 <Settings size={20} className="shrink-0 group-hover:rotate-90 transition-transform duration-500" />
                 {!isCollapsed && <span className="whitespace-nowrap">Configurações</span>}
               </Link>
              <button 
                 onClick={logout} 
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-red-500/10 hover:text-red-400 transition-all font-medium text-sm group ${isCollapsed ? 'justify-center w-12' : 'w-full'}`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all font-medium text-sm group ${isCollapsed ? 'justify-center w-12' : 'w-full'}`}
              >
                 <LogOut size={20} className="shrink-0 group-hover:-translate-x-1 transition-transform" />
                 {!isCollapsed && <span className="whitespace-nowrap">Sair</span>}
