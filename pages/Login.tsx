@@ -202,7 +202,7 @@ const Login = () => {
                     {/* Footer do Card */}
                     <div className="bg-slate-950/30 p-4 text-center border-t border-white/5">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                            UP! Company © 2025
+                            UP! Company © 2026
                         </p>
                     </div>
                 </div>

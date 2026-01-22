@@ -1,17 +1,11 @@
 
-// Use named exports for '@firebase/app' to ensure standard modular patterns are recognized.
-import { initializeApp, getApps, getApp, FirebaseApp } from '@firebase/app';
-import { getFirestore, Firestore } from '@firebase/firestore';
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
-/**
- * CONFIGURAÇÃO REAL DO GOOGLE FIREBASE
- * The API key must be obtained exclusively from the environment variable process.env.API_KEY.
- */
-const apiKey = process.env.API_KEY;
-
-// Configuração padrão segura para evitar crash se a API Key não estiver presente no build
+// --- CONFIGURAÇÃO DO FIREBASE (DADOS REAIS) ---
 const firebaseConfig = {
-  apiKey: apiKey || "dummy-key-for-build", // Evita crash inicial
+  apiKey: "AIzaSyB9ZrQOAyo_JCotqAKjDjoO8-OQEZIewso",
   authDomain: "gen-lang-client-0184846197.firebaseapp.com",
   projectId: "gen-lang-client-0184846197",
   storageBucket: "gen-lang-client-0184846197.firebasestorage.app",
@@ -20,22 +14,44 @@ const firebaseConfig = {
   measurementId: "G-GE81R3Q8VW"
 };
 
-let app: FirebaseApp;
-let dbFirestore: Firestore;
+// Inicializa o Firebase
+const app = initializeApp(firebaseConfig);
 
-try {
-  // Singleton: Garante inicialização única e compartilhamento de instância.
-  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-  
-  // Se a chave for dummy, avisamos no console mas não travamos a renderização do React
-  if (!apiKey || apiKey === "dummy-key-for-build") {
-      console.warn("⚠️ AVISO CRÍTICO: API_KEY não encontrada. Configure nas variáveis de ambiente do Vercel.");
-  }
-  
-  dbFirestore = getFirestore(app);
-} catch (error) {
-  console.error("Erro fatal ao inicializar Firebase:", error);
-  // Não re-lançamos o erro para permitir que a UI mostre uma mensagem amigável se necessário
-}
+// Inicializa Autenticação e Banco de Dados
+const auth = getAuth(app);
+const dbFirestore = getFirestore(app);
 
-export { dbFirestore };
+// Promessa que resolve quando o usuário conecta OU se a conexão falhar (fallback para modo público)
+const authPromise = new Promise<void>((resolve) => {
+    let resolved = false;
+
+    // Função auxiliar para garantir que só resolvemos uma vez
+    const doResolve = () => {
+        if (!resolved) {
+            resolved = true;
+            resolve();
+        }
+    };
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+            console.log("🔥 Firebase: Conectado como", user.uid);
+            doResolve();
+        } else {
+            // Se não tiver usuário, tenta login anônimo
+            console.log("🔥 Firebase: Tentando login anônimo...");
+            signInAnonymously(auth)
+                .then(() => {
+                    // O onAuthStateChanged vai disparar novamente com o user, então não precisamos resolver aqui
+                })
+                .catch((error) => {
+                    console.warn("Aviso: Autenticação anônima falhou (provavelmente desativada no console). Tentando acesso público...", error);
+                    // IMPORTANTE: Resolve mesmo com erro de auth, para não travar o app na tela de loading,
+                    // já que as regras do banco permitem acesso por data.
+                    doResolve();
+                });
+        }
+    });
+});
+
+export { dbFirestore, auth, authPromise };
