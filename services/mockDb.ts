@@ -1,21 +1,7 @@
 
-import { 
-    collection, 
-    getDocs, 
-    getDoc, 
-    addDoc, 
-    updateDoc, 
-    deleteDoc, 
-    doc, 
-    query, 
-    where, 
-    setDoc,
-    writeBatch
-} from '@firebase/firestore';
-import { dbFirestore } from './firebase';
-import { Lead, Notification, Tag, Tenant, User, Client, ActivityLog, DashboardStats } from '../types';
+import { Lead, Notification, Tag, Tenant, User, Client, DashboardStats, ActivityLog } from '../types';
 
-// Dados iniciais LIMPOS - Apenas Admin Master
+// Dados estáticos iniciais
 export const TENANTS: Tenant[] = [
   { 
       id: 'up-admin', 
@@ -44,14 +30,16 @@ export const USERS: User[] = [
   }
 ];
 
-const cleanData = (obj: any) => {
-    const newObj = { ...obj };
-    Object.keys(newObj).forEach(key => {
-        if (newObj[key] === undefined) {
-            delete newObj[key];
-        }
-    });
-    return newObj;
+// Utilitários
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const STORAGE_KEYS = {
+    LEADS: 'up_crm_leads',
+    CLIENTS: 'up_crm_clients',
+    NOTIFICATIONS: 'up_crm_notifications',
+    TAGS: 'up_crm_tags',
+    TENANTS: 'up_crm_tenants',
+    USERS: 'up_crm_users'
 };
 
 class MockDB {
@@ -61,15 +49,36 @@ class MockDB {
     this.currentTenantId = tenantId; 
   }
 
+  // Generic Get/Set for LocalStorage
+  private get<T>(key: string, defaultData: T[] = []): T[] {
+      try {
+          const stored = localStorage.getItem(key);
+          return stored ? JSON.parse(stored) : defaultData;
+      } catch (e) {
+          console.error(`Error reading ${key} from localStorage`, e);
+          return defaultData;
+      }
+  }
+
+  private set<T>(key: string, data: T[]) {
+      try {
+          localStorage.setItem(key, JSON.stringify(data));
+      } catch (e) {
+          console.error(`Error saving ${key} to localStorage`, e);
+      }
+  }
+
   // --- SYSTEM MANAGEMENT (SUPER ADMIN) ---
 
   async createSystemClient(userData: { name: string, email: string, companyName: string, category: string }): Promise<{ user: User, tenant: Tenant }> {
-      // 1. Gerar Tenant ID (Slugify)
+      await delay(600);
+      
+      // Gerar ID seguro
       const tenantId = userData.companyName
           .toLowerCase()
-          .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove acentos
-          .replace(/[^\w\s-]/g, '') // Remove caracteres especiais
-          .replace(/\s+/g, '-'); // Troca espaços por hífens
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-');
 
       const newTenant: Tenant = {
           id: tenantId,
@@ -82,211 +91,159 @@ class MockDB {
           id: `user-${Date.now()}`,
           name: userData.name,
           email: userData.email,
-          role: 'admin', // O primeiro usuário é Admin do Tenant, mas NÃO super_admin
-          tenantId: tenantId, // VINCULO CRUCIAL
+          role: 'admin',
+          tenantId: tenantId,
           avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=0F172A&color=fff`
       };
 
-      // 2. Salvar no Firestore
-      try {
-          await setDoc(doc(dbFirestore, 'tenants', tenantId), newTenant);
-          await setDoc(doc(dbFirestore, 'users', newUser.id), newUser);
-          
-          // 3. Atualizar Arrays Locais
-          const exists = TENANTS.find(t => t.id === newTenant.id);
-          if (!exists) TENANTS.push(newTenant);
-          
-          const userExists = USERS.find(u => u.email === newUser.email);
-          if (!userExists) USERS.push(newUser);
+      const allTenants = this.get<Tenant>(STORAGE_KEYS.TENANTS, TENANTS);
+      const allUsers = this.get<User>(STORAGE_KEYS.USERS, USERS);
 
-          return { user: newUser, tenant: newTenant };
-      } catch (error) {
-          console.error("Erro ao criar cliente sistema:", error);
-          throw error;
+      // Avoid duplicates
+      if (!allTenants.find(t => t.id === newTenant.id)) {
+          this.set(STORAGE_KEYS.TENANTS, [...allTenants, newTenant]);
       }
+      if (!allUsers.find(u => u.email === newUser.email)) {
+          this.set(STORAGE_KEYS.USERS, [...allUsers, newUser]);
+      }
+
+      return { user: newUser, tenant: newTenant };
   }
 
   async deleteTenant(tenantId: string): Promise<void> {
       if (tenantId === 'up-admin') throw new Error("Não é possível excluir o ambiente mestre.");
+      await delay(500);
 
-      try {
-          // Deletar do Firestore
-          await deleteDoc(doc(dbFirestore, 'tenants', tenantId));
-          
-          // Buscar e deletar usuários associados (opcional, mas recomendado para limpeza)
-          const q = query(collection(dbFirestore, 'users'), where('tenantId', '==', tenantId));
-          const snapshot = await getDocs(q);
-          const batch = writeBatch(dbFirestore);
-          snapshot.docs.forEach((doc) => {
-              batch.delete(doc.ref);
-          });
-          await batch.commit();
+      const tenants = this.get<Tenant>(STORAGE_KEYS.TENANTS, TENANTS).filter(t => t.id !== tenantId);
+      const users = this.get<User>(STORAGE_KEYS.USERS, USERS).filter(u => u.tenantId !== tenantId);
+      // Also clean up data related to tenant
+      const leads = this.get<Lead>(STORAGE_KEYS.LEADS).filter(l => l.tenantId !== tenantId);
+      const clients = this.get<Client>(STORAGE_KEYS.CLIENTS).filter(c => c.tenantId !== tenantId);
 
-          // Atualizar Arrays Locais
-          const tIndex = TENANTS.findIndex(t => t.id === tenantId);
-          if (tIndex > -1) TENANTS.splice(tIndex, 1);
-
-          // Remover usuários locais
-          for (let i = USERS.length - 1; i >= 0; i--) {
-              if (USERS[i].tenantId === tenantId) {
-                  USERS.splice(i, 1);
-              }
-          }
-
-      } catch (error) {
-          console.error("Erro ao excluir tenant:", error);
-          // Fallback local se firestore falhar
-          const tIndex = TENANTS.findIndex(t => t.id === tenantId);
-          if (tIndex > -1) TENANTS.splice(tIndex, 1);
-      }
+      this.set(STORAGE_KEYS.TENANTS, tenants);
+      this.set(STORAGE_KEYS.USERS, users);
+      this.set(STORAGE_KEYS.LEADS, leads);
+      this.set(STORAGE_KEYS.CLIENTS, clients);
   }
 
   async getAllUsers(): Promise<User[]> {
-      // Combina usuários estáticos com os do Firestore (simulação robusta)
-      const q = query(collection(dbFirestore, 'users'));
-      const snapshot = await getDocs(q);
-      const dbUsers = snapshot.docs.map(d => d.data() as User);
-      
-      // Merge unique users by ID
-      const allUsers = [...USERS, ...dbUsers];
-      return Array.from(new Map(allUsers.map(item => [item.id, item])).values());
+      await delay(200);
+      return this.get<User>(STORAGE_KEYS.USERS, USERS);
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User> {
-      // Atualiza no Firestore se existir lá, senão atualiza apenas localmente (para mock users)
-      try {
-          // Tenta atualizar no Firestore
-          const docRef = doc(dbFirestore, 'users', id);
-          const docSnap = await getDoc(docRef);
-          
-          if (docSnap.exists()) {
-              await updateDoc(docRef, cleanData(updates));
-          }
-      } catch (e) {
-          console.warn("Usuário não está no Firestore, atualizando apenas localmente.");
-      }
-
-      // Atualiza array local
-      const localIndex = USERS.findIndex(u => u.id === id);
-      if (localIndex >= 0) {
-          USERS[localIndex] = { ...USERS[localIndex], ...updates };
-          return USERS[localIndex];
+      await delay(300);
+      const users = this.get<User>(STORAGE_KEYS.USERS, USERS);
+      const index = users.findIndex(u => u.id === id);
+      
+      if (index !== -1) {
+          users[index] = { ...users[index], ...updates };
+          this.set(STORAGE_KEYS.USERS, users);
+          return users[index];
       }
       
-      // Se não achou no local, retorna o objeto mesclado assumindo sucesso do firestore ou retorno mockado
+      // Fallback for session user not in list
       return { id, ...updates } as User; 
   }
   
   async getAllTenants(): Promise<Tenant[]> {
-      try {
-          // Busca todos os tenants do Firestore
-          const q = query(collection(dbFirestore, 'tenants'));
-          const snapshot = await getDocs(q);
-          const dbTenants = snapshot.docs.map(d => d.data() as Tenant);
-          
-          // Combina com os tenants estáticos, evitando duplicatas por ID
-          const dbIds = new Set(dbTenants.map(t => t.id));
-          const uniqueStatic = TENANTS.filter(t => !dbIds.has(t.id));
-          
-          return [...uniqueStatic, ...dbTenants];
-      } catch (error) {
-          console.error("Erro ao buscar tenants:", error);
-          return TENANTS; // Fallback para estático em caso de erro
-      }
+      await delay(200);
+      return this.get<Tenant>(STORAGE_KEYS.TENANTS, TENANTS);
   }
 
   // --- TENANT METHODS ---
 
   async getTenant(id: string): Promise<Tenant | undefined> {
-      const docRef = doc(dbFirestore, 'tenants', id);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) return docSnap.data() as Tenant;
-      return TENANTS.find(t => t.id === id);
+      await delay(100);
+      const tenants = this.get<Tenant>(STORAGE_KEYS.TENANTS, TENANTS);
+      return tenants.find(t => t.id === id);
   }
 
   async getTenantAdmin(tenantId: string): Promise<User | undefined> {
-      const users = await this.getAllUsers();
-      // Retorna o primeiro admin encontrado para este tenant
+      await delay(100);
+      const users = this.get<User>(STORAGE_KEYS.USERS, USERS);
       return users.find(u => u.tenantId === tenantId && (u.role === 'admin' || u.role === 'super_admin'));
   }
 
   async updateTenant(id: string, updates: Partial<Tenant>): Promise<Tenant> {
-      const docRef = doc(dbFirestore, 'tenants', id);
-      const cleaned = cleanData(updates);
-      await setDoc(docRef, cleaned, { merge: true });
+      await delay(300);
+      const tenants = this.get<Tenant>(STORAGE_KEYS.TENANTS, TENANTS);
+      const index = tenants.findIndex(t => t.id === id);
       
-      // Atualiza array local também
-      const localIndex = TENANTS.findIndex(t => t.id === id);
-      if (localIndex >= 0) {
-          TENANTS[localIndex] = { ...TENANTS[localIndex], ...updates };
+      if (index !== -1) {
+          tenants[index] = { ...tenants[index], ...updates };
+          this.set(STORAGE_KEYS.TENANTS, tenants);
+          return tenants[index];
       }
-
-      const updated = await this.getTenant(id);
-      return updated!;
+      throw new Error("Tenant not found");
   }
 
+  // --- LEADS ---
+
   async getLeads(): Promise<Lead[]> { 
-    const q = query(
-        collection(dbFirestore, 'leads'), 
-        where('tenantId', '==', this.currentTenantId)
-    );
-    const querySnapshot = await getDocs(q);
-    const leads = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Lead));
-    return leads.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    await delay(300);
+    const leads = this.get<Lead>(STORAGE_KEYS.LEADS);
+    return leads
+        .filter(l => l.tenantId === this.currentTenantId)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
   async getLeadById(id: string): Promise<Lead | undefined> { 
-    const docRef = doc(dbFirestore, 'leads', id);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) return { id: docSnap.id, ...docSnap.data() } as Lead;
-    return undefined;
+    await delay(100);
+    const leads = this.get<Lead>(STORAGE_KEYS.LEADS);
+    return leads.find(l => l.id === id);
   }
 
   async addLead(leadData: Omit<Lead, 'id' | 'tenantId' | 'createdAt'>): Promise<Lead> {
-    const newLead = {
-      ...leadData,
+    await delay(400);
+    const newLead: Lead = {
+      id: Math.random().toString(36).substr(2, 9),
       tenantId: this.currentTenantId,
       createdAt: new Date().toISOString(),
-      tags: leadData.tags || []
+      tags: leadData.tags || [],
+      ...leadData
     };
-    const cleaned = cleanData(newLead);
-    const docRef = await addDoc(collection(dbFirestore, 'leads'), cleaned);
-    return { id: docRef.id, ...cleaned } as Lead;
+    
+    const leads = this.get<Lead>(STORAGE_KEYS.LEADS);
+    this.set(STORAGE_KEYS.LEADS, [...leads, newLead]);
+    return newLead;
   }
 
   async updateLead(id: string, updates: Partial<Lead>): Promise<Lead> {
-    const docRef = doc(dbFirestore, 'leads', id);
-    const cleaned = cleanData(updates);
-    await updateDoc(docRef, cleaned);
-    const updated = await this.getLeadById(id);
-    return updated!;
+    await delay(300);
+    const leads = this.get<Lead>(STORAGE_KEYS.LEADS);
+    const index = leads.findIndex(l => l.id === id);
+    
+    if (index !== -1) {
+        leads[index] = { ...leads[index], ...updates };
+        this.set(STORAGE_KEYS.LEADS, leads);
+        return leads[index];
+    }
+    throw new Error("Lead not found");
   }
 
   async deleteLead(id: string): Promise<void> {
-    console.log(`[Firestore] Deletando Lead ID: ${id}`);
-    const leadRef = doc(dbFirestore, 'leads', id);
-    await deleteDoc(leadRef);
+    await delay(300);
+    const leads = this.get<Lead>(STORAGE_KEYS.LEADS).filter(l => l.id !== id);
+    this.set(STORAGE_KEYS.LEADS, leads);
   }
 
+  // --- CLIENTS ---
+
   async getClients(): Promise<Client[]> { 
-    const q = query(
-        collection(dbFirestore, 'clients'), 
-        where('tenantId', '==', this.currentTenantId)
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client));
+    await delay(300);
+    return this.get<Client>(STORAGE_KEYS.CLIENTS).filter(c => c.tenantId === this.currentTenantId);
   }
 
   async getClientById(id: string): Promise<Client | undefined> { 
-    const docRef = doc(dbFirestore, 'clients', id);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) return { id: docSnap.id, ...docSnap.data() } as Client;
-    return undefined;
+    await delay(100);
+    return this.get<Client>(STORAGE_KEYS.CLIENTS).find(c => c.id === id);
   }
 
   async addClient(clientData: any): Promise<Client> {
-    const newClient = {
-      ...clientData,
+    await delay(400);
+    const newClient: Client = {
+      id: Math.random().toString(36).substr(2, 9),
       tenantId: this.currentTenantId,
       healthScore: 100,
       tasks: clientData.tasks || [
@@ -300,80 +257,80 @@ class MockDB {
           timestamp: new Date().toISOString(), 
           user: 'Sistema' 
         }
-      ]
+      ],
+      ...clientData
     };
-    const cleaned = cleanData(newClient);
-    const docRef = await addDoc(collection(dbFirestore, 'clients'), cleaned);
-    return { id: docRef.id, ...cleaned } as Client;
+    
+    const clients = this.get<Client>(STORAGE_KEYS.CLIENTS);
+    this.set(STORAGE_KEYS.CLIENTS, [...clients, newClient]);
+    return newClient;
   }
 
   async updateClient(id: string, updates: Partial<Client>): Promise<Client> {
-      const docRef = doc(dbFirestore, 'clients', id);
-      const docSnap = await getDoc(docRef);
-      if (!docSnap.exists()) throw new Error("Cliente não encontrado");
+      await delay(300);
+      const clients = this.get<Client>(STORAGE_KEYS.CLIENTS);
+      const index = clients.findIndex(c => c.id === id);
       
-      const clientToUpdate = docSnap.data() as Client;
-      const user = "Gestor Estratégico";
-      const newActivities: ActivityLog[] = [];
-      
-      if (updates.contractValue && updates.contractValue !== clientToUpdate.contractValue) {
-          newActivities.push({
-              id: Math.random().toString(36).substr(2, 9),
-              type: 'field_update',
-              content: `Valor do contrato alterado para R$ ${updates.contractValue}`,
-              timestamp: new Date().toISOString(),
-              user: user
-          });
+      if (index !== -1) {
+          const currentClient = clients[index];
+          let activities = currentClient.activities || [];
+          
+          // Auto-generate activity log for value changes
+          if (updates.contractValue && updates.contractValue !== currentClient.contractValue) {
+              activities = [{
+                  id: Math.random().toString(36).substr(2, 9),
+                  type: 'field_update',
+                  content: `Valor do contrato alterado para R$ ${updates.contractValue}`,
+                  timestamp: new Date().toISOString(),
+                  user: "Gestor Estratégico"
+              }, ...activities];
+          }
+
+          const updatedClient = { 
+              ...currentClient, 
+              ...updates, 
+              activities: updates.activities || activities 
+          };
+          
+          clients[index] = updatedClient;
+          this.set(STORAGE_KEYS.CLIENTS, clients);
+          return updatedClient;
       }
-
-      const updatedData = { 
-          ...updates, 
-          activities: [...newActivities, ...(clientToUpdate.activities || [])]
-      };
-
-      const cleaned = cleanData(updatedData);
-      await updateDoc(docRef, cleaned);
-      const result = await this.getClientById(id);
-      return result!;
+      throw new Error("Cliente não encontrado");
   }
 
   async deleteClient(id: string): Promise<void> {
-    console.log(`[Firestore] Deletando Cliente ID: ${id}`);
-    const clientRef = doc(dbFirestore, 'clients', id);
-    await deleteDoc(clientRef);
+    await delay(300);
+    const clients = this.get<Client>(STORAGE_KEYS.CLIENTS).filter(c => c.id !== id);
+    this.set(STORAGE_KEYS.CLIENTS, clients);
   }
 
-  async getNotifications(): Promise<Notification[]> {
-    const q = query(
-      collection(dbFirestore, 'notifications'),
-      where('tenantId', '==', this.currentTenantId)
-    );
-    const querySnapshot = await getDocs(q);
-    let notifications = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
-    notifications.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+  // --- NOTIFICATIONS ---
 
-    return notifications;
+  async getNotifications(): Promise<Notification[]> {
+    await delay(200);
+    return this.get<Notification>(STORAGE_KEYS.NOTIFICATIONS)
+        .filter(n => n.tenantId === this.currentTenantId)
+        .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
   }
 
   async markAllRead(): Promise<void> {
-    const q = query(
-      collection(dbFirestore, 'notifications'),
-      where('tenantId', '==', this.currentTenantId),
-      where('read', '==', false)
+    await delay(200);
+    const notifications = this.get<Notification>(STORAGE_KEYS.NOTIFICATIONS).map(n => 
+        n.tenantId === this.currentTenantId ? { ...n, read: true } : n
     );
-    const querySnapshot = await getDocs(q);
-    const batch = writeBatch(dbFirestore);
-    querySnapshot.docs.forEach((d) => {
-      batch.update(d.ref, { read: true });
-    });
-    await batch.commit();
+    this.set(STORAGE_KEYS.NOTIFICATIONS, notifications);
   }
 
+  // --- STATS ---
+
   async getStats(): Promise<DashboardStats> {
+    await delay(300);
     const leads = await this.getLeads();
     const clients = await this.getClients();
     const activeClients = clients.filter(c => c.status === 'Active');
-    const monthlyRevenue = activeClients.reduce((acc, c) => acc + c.contractValue, 0);
+    const monthlyRevenue = activeClients.reduce((acc, c) => acc + (c.contractValue || 0), 0);
+    
     return {
       totalLeads: leads.length,
       monthlyLeads: leads.filter(l => new Date(l.createdAt).getMonth() === new Date().getMonth()).length,
@@ -383,29 +340,41 @@ class MockDB {
     };
   }
 
+  // --- TAGS ---
+
   async getTags(): Promise<Tag[]> { 
-    const q = query(collection(dbFirestore, 'tags'));
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) {
-        return [
-            { name: 'Prioridade Alta', color: 'bg-red-100 text-red-700 border-red-200' },
-            { name: 'VIP', color: 'bg-purple-100 text-purple-700 border-purple-200' }
-        ];
-    }
-    return querySnapshot.docs.map(doc => doc.data() as Tag);
+    await delay(100);
+    const defaultTags: Tag[] = [
+        { name: 'Prioridade Alta', color: 'bg-red-100 text-red-700 border-red-200' },
+        { name: 'VIP', color: 'bg-purple-100 text-purple-700 border-purple-200' }
+    ];
+    return this.get<Tag>(STORAGE_KEYS.TAGS, defaultTags);
   }
 
   async saveTag(tag: Tag, oldName?: string): Promise<Tag[]> {
-    const tagId = tag.name.toLowerCase().replace(/\s+/g, '-');
-    await setDoc(doc(dbFirestore, 'tags', tagId), tag);
-    return this.getTags();
+    await delay(300);
+    let tags = this.get<Tag>(STORAGE_KEYS.TAGS);
+    
+    if (oldName) {
+        tags = tags.map(t => t.name === oldName ? tag : t);
+    } else {
+        if (!tags.find(t => t.name === tag.name)) {
+            tags.push(tag);
+        }
+    }
+    
+    this.set(STORAGE_KEYS.TAGS, tags);
+    return tags;
   }
 
   async deleteTag(name: string): Promise<Tag[]> {
-    const tagId = name.toLowerCase().replace(/\s+/g, '-');
-    await deleteDoc(doc(dbFirestore, 'tags', tagId));
-    return this.getTags();
+    await delay(300);
+    const tags = this.get<Tag>(STORAGE_KEYS.TAGS).filter(t => t.name !== name);
+    this.set(STORAGE_KEYS.TAGS, tags);
+    return tags;
   }
+
+  // --- HELPERS ---
 
   async getUpcomingFollowUps(): Promise<Lead[]> {
       const leads = await this.getLeads();
