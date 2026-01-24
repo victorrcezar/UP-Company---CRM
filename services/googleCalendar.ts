@@ -2,9 +2,9 @@
 import { Lead } from '../types';
 
 // --- CONFIGURAÇÃO GLOBAL ---
-// Coloque seu Client ID aqui uma única vez.
-// Todos os clientes usarão este ID para se conectar.
-const GOOGLE_CLIENT_ID = "SEU_CLIENT_ID_DO_GOOGLE_CLOUD_AQUI.apps.googleusercontent.com";
+// Client ID configurado no Google Cloud Console.
+// Permite que qualquer usuário faça login com sua própria conta Google.
+const GOOGLE_CLIENT_ID = "291624685306-g7e8ahe2qdmis4r2nglf15p1n788ejq3.apps.googleusercontent.com";
 
 const SCOPES = 'https://www.googleapis.com/auth/calendar';
 
@@ -49,9 +49,9 @@ class GoogleCalendarService {
     }
 
     async requestToken() {
-        if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes('SEU_CLIENT_ID')) {
-            console.error('ERRO: Client ID não configurado no código (services/googleCalendar.ts).');
-            alert('Erro de Configuração do Sistema: O ID do Google não foi definido pelo administrador.');
+        if (!GOOGLE_CLIENT_ID) {
+            console.error('ERRO: Client ID não configurado.');
+            alert('Erro de Configuração: ID do Google não definido.');
             return;
         }
 
@@ -61,12 +61,11 @@ class GoogleCalendarService {
             // Pequeno delay para garantir que a lib do Google carregou
             setTimeout(() => {
                 if (this.tokenClient) {
-                    // check if token is valid or skip logic removed for simplicity in "one click" feel
-                    // Always request to ensure valid session
-                    this.tokenClient.requestAccessToken({ prompt: '' }); // Prompt vazio tenta logar sem forçar consentimento se já autorizado
+                    // O prompt vazio tenta usar credenciais existentes sem forçar o popup se possível
+                    this.tokenClient.requestAccessToken({ prompt: '' });
                 } else {
-                    // Fallback se a lib não carregou a tempo
-                    console.warn("Google GIS não carregado, tentando novamente...");
+                    console.warn("Google GIS não carregado, tentando novamente com prompt...");
+                    // Fallback
                     setTimeout(() => {
                          if (this.tokenClient) this.tokenClient.requestAccessToken({ prompt: 'consent' });
                     }, 1000);
@@ -164,7 +163,9 @@ class GoogleCalendarService {
     logout() {
         localStorage.removeItem('g_cal_access_token');
         this.accessToken = null;
-        // Opcional: revogar token via endpoint do Google
+        if (typeof window !== 'undefined' && (window as any).google) {
+            (window as any).google.accounts.oauth2.revoke(this.accessToken, () => {console.log('Token revogado')});
+        }
     }
 
     isConnected() {
