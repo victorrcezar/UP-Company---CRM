@@ -1,186 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { User as UserIcon, Bell, Users, Link as LinkIcon, Save, Camera, Mail, Building, Check, AlertTriangle, Play, RefreshCw, Key, ShieldCheck, X, Edit, Trash2, CheckCircle2, Zap, Info, Plus } from 'lucide-react';
+import { User as UserIcon, Bell, Users, Save, Camera, Mail, Building, Check, RefreshCw, Key, ShieldCheck, X, Edit, Trash2, Info, Plus } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { googleSync } from '../services/googleSync';
 import { db } from '../services/mockDb';
 
-const GoogleIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" className="shrink-0">
-        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z" fill="#EA4335"/>
-    </svg>
+// Toggle Switch Component
+const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
+    <button onClick={onChange} className={`w-11 h-6 rounded-full relative transition-colors ${checked ? 'bg-up-dark' : 'bg-gray-200 dark:bg-gray-700'}`}>
+        <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${checked ? 'translate-x-5' : 'translate-x-0'}`}></span>
+    </button>
 );
-
-const IntegrationsSettings = () => {
-    const { currentTenant, updateTenantProfile } = useAuth();
-    const [scriptUrl, setScriptUrl] = useState('');
-    const [clientId, setClientId] = useState('');
-    const [isSaving, setIsSaving] = useState(false);
-    const [isTesting, setIsTesting] = useState(false);
-    const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
-
-    useEffect(() => {
-        if (currentTenant) {
-            setScriptUrl(currentTenant.googleScriptUrl || '');
-            setClientId(currentTenant.googleClientId || '');
-        }
-    }, [currentTenant]);
-
-    const handleSaveSettings = async () => {
-        if (!currentTenant) return;
-        setIsSaving(true);
-        try {
-            if (updateTenantProfile) {
-                await updateTenantProfile({ 
-                    googleScriptUrl: scriptUrl,
-                    googleClientId: clientId
-                });
-            }
-            await new Promise(resolve => setTimeout(resolve, 800));
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const handleTestSync = async () => {
-        setIsTesting(true);
-        setTestResult(null);
-        const success = await googleSync.testConnection(scriptUrl);
-        setTimeout(() => {
-            setTestResult(success ? 'success' : 'error');
-            setIsTesting(false);
-        }, 1500);
-    };
-
-    return (
-        <div className="space-y-10 animate-fade-in">
-            <div className="flex flex-col md:flex-row gap-6 items-start bg-blue-50 dark:bg-blue-900/10 p-6 rounded-[2rem] border border-blue-100 dark:border-blue-800/30">
-                <div className="p-4 bg-white dark:bg-up-deep rounded-2xl shadow-sm">
-                    <GoogleIcon />
-                </div>
-                <div>
-                    <h3 className="text-lg font-black text-up-dark dark:text-white mb-2">Conecte sua Agenda Google</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                        Configure as credenciais da sua organização. Cada cliente tem seu próprio ambiente isolado.
-                        Ao salvar, o CRM passará a ler e escrever eventos diretamente na conta Google configurada.
-                    </p>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="group bg-white dark:bg-up-deep border border-gray-200 dark:border-gray-700 rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 relative">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-red-500 to-yellow-500"></div>
-                    
-                    <div className="p-8 border-b border-gray-100 dark:border-gray-700">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="w-12 h-12 rounded-2xl bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-blue-500 transition-colors">
-                                <Key size={24} />
-                            </div>
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${clientId ? 'bg-green-100 text-green-700 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                                {clientId ? 'Configurado' : 'Pendente'}
-                            </span>
-                        </div>
-                        <h4 className="text-xl font-black text-up-dark dark:text-white mb-1">Visualização de Agenda</h4>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">OAuth 2.0 Client ID</p>
-                    </div>
-                    
-                    <div className="p-8 space-y-6">
-                        <p className="text-xs text-gray-500 leading-relaxed">
-                            Permite que o CRM <strong>exiba</strong> os eventos da sua agenda Google dentro do sistema.
-                        </p>
-                        
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Client ID (Web Application)</label>
-                            <input 
-                                type="text" 
-                                value={clientId}
-                                onChange={(e) => setClientId(e.target.value)}
-                                placeholder="123456...apps.googleusercontent.com"
-                                className="w-full px-5 py-4 bg-gray-50 dark:bg-up-dark/50 border border-gray-200 dark:border-gray-700 rounded-2xl text-xs font-mono outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all dark:text-white"
-                            />
-                        </div>
-
-                        <div className="bg-gray-50 dark:bg-up-dark/30 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
-                            <p className="text-[10px] font-bold text-gray-500 mb-2 flex items-center gap-2"><Info size={12} /> Onde encontrar?</p>
-                            <ol className="text-[10px] text-gray-400 list-decimal ml-4 space-y-1">
-                                <li>Google Cloud Console &gt; APIs & Services.</li>
-                                <li>Credentials &gt; Create Credentials &gt; OAuth Client ID.</li>
-                                <li>Type: Web Application.</li>
-                                <li>Add Origin: <code>{window.location.origin}</code></li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="group bg-white dark:bg-up-deep border border-gray-200 dark:border-gray-700 rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 relative">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 via-blue-500 to-purple-500"></div>
-
-                    <div className="p-8 border-b border-gray-100 dark:border-gray-700">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="w-12 h-12 rounded-2xl bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-purple-500 transition-colors">
-                                <Zap size={24} />
-                            </div>
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${scriptUrl ? 'bg-green-100 text-green-700 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                                {scriptUrl ? 'Ativo' : 'Inativo'}
-                            </span>
-                        </div>
-                        <h4 className="text-xl font-black text-up-dark dark:text-white mb-1">Automação de Eventos</h4>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Google Apps Script Webhook</p>
-                    </div>
-                    
-                    <div className="p-8 space-y-6">
-                        <p className="text-xs text-gray-500 leading-relaxed">
-                            Permite que o CRM <strong>crie</strong> eventos na sua agenda automaticamente quando você define um follow-up.
-                        </p>
-
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Script Web App URL</label>
-                            <input 
-                                type="text" 
-                                value={scriptUrl}
-                                onChange={(e) => setScriptUrl(e.target.value)}
-                                placeholder="https://script.google.com/macros/s/.../exec"
-                                className="w-full px-5 py-4 bg-gray-50 dark:bg-up-dark/50 border border-gray-200 dark:border-gray-700 rounded-2xl text-xs font-mono outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 transition-all dark:text-white"
-                            />
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                            <button 
-                                onClick={handleTestSync}
-                                disabled={!scriptUrl || isTesting}
-                                className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-colors ${
-                                    testResult === 'success' ? 'text-green-500' : 
-                                    testResult === 'error' ? 'text-red-500' : 'text-blue-500 hover:text-blue-600'
-                                }`}
-                            >
-                                {isTesting ? <RefreshCw size={14} className="animate-spin" /> : <Play size={14} />}
-                                {isTesting ? 'Testando...' : testResult === 'success' ? 'Conexão OK!' : testResult === 'error' ? 'Falha na Conexão' : 'Testar Integração'}
-                            </button>
-                            {testResult === 'success' && <CheckCircle2 size={16} className="text-green-500 animate-scale-up" />}
-                            {testResult === 'error' && <AlertTriangle size={16} className="text-red-500 animate-scale-up" />}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex justify-end pt-4 border-t border-gray-100 dark:border-gray-700">
-                <button 
-                    onClick={handleSaveSettings}
-                    disabled={isSaving}
-                    className="bg-up-dark text-white px-8 py-4 rounded-2xl font-black uppercase tracking-[0.15em] text-xs shadow-xl shadow-up-dark/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                    {isSaving ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
-                    {isSaving ? 'Salvando...' : 'Salvar Configurações'}
-                </button>
-            </div>
-        </div>
-    );
-};
 
 const ProfileSettings = () => {
   const { user, updateUserProfile } = useAuth();
@@ -287,12 +116,6 @@ const ProfileSettings = () => {
     </div>
   );
 };
-
-const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
-    <button onClick={onChange} className={`w-11 h-6 rounded-full relative transition-colors ${checked ? 'bg-up-dark' : 'bg-gray-200 dark:bg-gray-700'}`}>
-        <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${checked ? 'translate-x-5' : 'translate-x-0'}`}></span>
-    </button>
-);
 
 const NotificationSettings = () => {
     const [prefs, setPrefs] = useState({ email: true, whatsapp: true });
@@ -571,7 +394,6 @@ const Settings = () => {
     { id: 'profile', label: 'Meu Perfil', icon: UserIcon },
     { id: 'notifications', label: 'Notificações', icon: Bell },
     { id: 'team', label: user?.role === 'super_admin' ? 'Gestão de Clientes' : 'Equipe', icon: Users },
-    { id: 'integrations', label: 'Google Integration', icon: LinkIcon },
     { id: 'company', label: 'Empresa', icon: Building },
   ];
 
@@ -585,7 +407,6 @@ const Settings = () => {
           case 'profile': return <ProfileSettings />;
           case 'notifications': return <NotificationSettings />;
           case 'team': return <TeamSettings />;
-          case 'integrations': return <IntegrationsSettings />;
           case 'company': return <CompanySettings />;
           default: return <ProfileSettings />;
       }
