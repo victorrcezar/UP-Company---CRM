@@ -1,5 +1,5 @@
 
-import { Lead, Notification, Tag, Tenant, User, Client, DashboardStats, ActivityLog } from '../types';
+import { Lead, Notification, Tag, Tenant, User, Client, DashboardStats, ActivityLog, CustomEvent } from '../types';
 import { dbFirestore, authPromise } from './firebase';
 import { 
   collection, getDocs, doc, setDoc, updateDoc, deleteDoc, query, where, orderBy 
@@ -70,6 +70,8 @@ const FALLBACK_CLIENTS: Client[] = [
     }
 ];
 
+const FALLBACK_EVENTS: CustomEvent[] = []; // Armazenamento local para eventos manuais
+
 class MockDB { 
   currentTenantId: string;
   hasShownError: boolean;
@@ -87,7 +89,6 @@ class MockDB {
       if (!this.hasShownError && error?.code === 'permission-denied') {
           this.hasShownError = true;
           console.warn("🔒 ACESSO NEGADO PELO FIREBASE. Regras expiradas? Ativando modo DEMO.");
-          // Omitindo alert repetitivo, mantendo log
       } else {
           console.error("Erro Firebase:", error);
       }
@@ -111,14 +112,13 @@ class MockDB {
               const tenants: Tenant[] = [];
               snap.forEach(doc => tenants.push(doc.data() as Tenant));
               
-              // Garante que o tenant principal sempre exista
               if (!tenants.find(t => t.id === 'up-admin')) {
                   tenants.unshift(INITIAL_TENANTS[0]);
               }
               return tenants;
           }
       } catch (e) {
-          // Falha silenciosa no Firebase, tenta local
+          // Falha silenciosa
       }
 
       const stored = localStorage.getItem('up_crm_tenants');
@@ -136,7 +136,6 @@ class MockDB {
               const users: User[] = [];
               snap.forEach(doc => users.push(doc.data() as User));
               
-              // Garante admins principais
               INITIAL_USERS.forEach(admin => {
                   if (!users.find(u => u.id === admin.id)) users.push(admin);
               });
@@ -170,13 +169,11 @@ class MockDB {
 
       try {
           await authPromise;
-          // Tenta salvar no Firebase
           await setDoc(doc(dbFirestore, "tenants", newTenantId), newTenant);
           await setDoc(doc(dbFirestore, "users", newUser.id), newUser);
       } catch (error) {
           this.handleFirebaseError(error);
           
-          // Fallback LocalStorage
           const currentTenants = await this.getAllTenants();
           const currentUsers = await this.getAllUsers();
           
@@ -205,7 +202,6 @@ class MockDB {
       } catch (error) {
           this.handleFirebaseError(error);
           
-          // Fallback LocalStorage
           const tenants = await this.getAllTenants();
           const users = await this.getAllUsers();
           
@@ -230,7 +226,6 @@ class MockDB {
           await authPromise;
           await deleteDoc(doc(dbFirestore, "tenants", id));
           
-          // Deletar usuários associados (operação simplificada)
           const users = await this.getAllUsers();
           const tenantUsers = users.filter(u => u.tenantId === id);
           for (const u of tenantUsers) {
@@ -316,7 +311,7 @@ class MockDB {
       return leads.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     } catch (error) {
       this.handleFirebaseError(error);
-      return FALLBACK_LEADS; // Retorna dados mockados em caso de erro
+      return FALLBACK_LEADS;
     }
   }
 
@@ -341,7 +336,7 @@ class MockDB {
         return newLead;
     } catch (error) {
         this.handleFirebaseError(error);
-        FALLBACK_LEADS.push(newLead); // Fallback local
+        FALLBACK_LEADS.push(newLead); 
         return newLead;
     }
   }
@@ -355,7 +350,6 @@ class MockDB {
         return { ...existing!, ...updates };
     } catch (error) {
         this.handleFirebaseError(error);
-        // Simula update no modo demo
         const index = FALLBACK_LEADS.findIndex(l => l.id === id);
         if (index > -1) {
             FALLBACK_LEADS[index] = { ...FALLBACK_LEADS[index], ...updates };
@@ -393,7 +387,7 @@ class MockDB {
       return clients;
     } catch (error) {
       this.handleFirebaseError(error);
-      return FALLBACK_CLIENTS; // Retorna dados mockados
+      return FALLBACK_CLIENTS;
     }
   }
 
@@ -429,7 +423,6 @@ class MockDB {
         return newClient;
     } catch (error) {
         this.handleFirebaseError(error);
-        // Fallback local robusto
         FALLBACK_CLIENTS.push(newClient);
         return newClient;
     }
@@ -444,7 +437,6 @@ class MockDB {
         return { ...existing!, ...updates };
     } catch (error) {
         this.handleFirebaseError(error);
-        // Fallback local robusto
         const index = FALLBACK_CLIENTS.findIndex(c => c.id === id);
         if (index > -1) {
             FALLBACK_CLIENTS[index] = { ...FALLBACK_CLIENTS[index], ...updates };
@@ -460,12 +452,62 @@ class MockDB {
         await deleteDoc(doc(dbFirestore, "clients", id));
     } catch (error) {
         this.handleFirebaseError(error);
-        // Fallback local robusto
         const index = FALLBACK_CLIENTS.findIndex(c => c.id === id);
         if (index > -1) {
             FALLBACK_CLIENTS.splice(index, 1);
         }
     }
+  }
+
+  // --- CUSTOM EVENTS (AGENDA AVULSA) ---
+
+  async getCustomEvents(): Promise<CustomEvent[]> {
+      try {
+          await authPromise;
+          const q = query(
+              collection(dbFirestore, 'events'),
+              where("tenantId", "==", this.currentTenantId)
+          );
+          const querySnapshot = await getDocs(q);
+          const events: CustomEvent[] = [];
+          querySnapshot.forEach((doc) => {
+              events.push({ id: doc.id, ...doc.data() } as CustomEvent);
+          });
+          return events;
+      } catch (error) {
+          this.handleFirebaseError(error);
+          return FALLBACK_EVENTS.filter(e => e.tenantId === this.currentTenantId);
+      }
+  }
+
+  async addCustomEvent(eventData: Omit<CustomEvent, 'id' | 'tenantId'>): Promise<CustomEvent> {
+      const newId = Math.random().toString(36).substr(2, 9);
+      const newEvent: CustomEvent = {
+          id: newId,
+          tenantId: this.currentTenantId,
+          ...eventData
+      };
+
+      try {
+          await authPromise;
+          await setDoc(doc(dbFirestore, "events", newId), newEvent);
+          return newEvent;
+      } catch (error) {
+          this.handleFirebaseError(error);
+          FALLBACK_EVENTS.push(newEvent);
+          return newEvent;
+      }
+  }
+
+  async deleteCustomEvent(id: string): Promise<void> {
+      try {
+          await authPromise;
+          await deleteDoc(doc(dbFirestore, "events", id));
+      } catch (error) {
+          this.handleFirebaseError(error);
+          const index = FALLBACK_EVENTS.findIndex(e => e.id === id);
+          if (index > -1) FALLBACK_EVENTS.splice(index, 1);
+      }
   }
 
   // --- NOTIFICATIONS & TAGS ---

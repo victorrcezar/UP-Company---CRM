@@ -1,23 +1,24 @@
 
 import React, { useEffect, useState } from 'react';
 import { db } from '../services/mockDb';
-import { Lead } from '../types';
+import { Lead, CustomEvent } from '../types';
 import { googleCalendar, GoogleEvent } from '../services/googleCalendar';
 import { 
     Calendar, Clock, ChevronRight, Building, ExternalLink, Globe, 
-    CalendarDays, LogOut, RefreshCw
+    CalendarDays, LogOut, RefreshCw, CalendarPlus, User
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import EventModal from '../components/agenda/EventModal';
 
 interface UnifiedEvent {
     id: string;
-    type: 'crm' | 'google';
+    type: 'crm_lead' | 'crm_event' | 'google';
     title: string;
     date: Date;
     description?: string;
     location?: string;
-    originalData: Lead | GoogleEvent;
+    originalData: Lead | GoogleEvent | CustomEvent;
 }
 
 const GoogleIcon = () => (
@@ -37,6 +38,7 @@ const WhatsAppLogo = () => (
 
 const UnifiedEventCard: React.FC<{ event: UnifiedEvent }> = ({ event }) => {
     const isGoogle = event.type === 'google';
+    const isLead = event.type === 'crm_lead';
     const day = event.date.getDate();
     const month = event.date.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase().replace('.', '');
     const time = event.date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -68,9 +70,11 @@ const UnifiedEventCard: React.FC<{ event: UnifiedEvent }> = ({ event }) => {
                             )}
                         </div>
                         <div className="pr-4">
-                            <a href={gEvent.htmlLink} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-400 hover:text-up-accent transition-all">
-                                <ExternalLink size={18} />
-                            </a>
+                            {gEvent.htmlLink && (
+                                <a href={gEvent.htmlLink} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-400 hover:text-up-accent transition-all">
+                                    <ExternalLink size={18} />
+                                </a>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -78,9 +82,45 @@ const UnifiedEventCard: React.FC<{ event: UnifiedEvent }> = ({ event }) => {
         );
     }
 
-    const lead = event.originalData as Lead;
+    if (isLead) {
+        const lead = event.originalData as Lead;
+        return (
+            <div className="bg-white dark:bg-up-deep rounded-2xl p-1 border-l-4 border-l-up-accent border-y border-r border-gray-100 dark:border-white/10 shadow-sm flex mb-4 transition-all hover:shadow-md group">
+                <div className="flex w-full">
+                    <div className="flex flex-col items-center justify-center px-5 border-r border-gray-100 dark:border-white/10 min-w-[80px]">
+                        <span className="text-xs font-bold text-gray-400">{month}</span>
+                        <span className="text-2xl font-black text-up-dark dark:text-white">{day}</span>
+                    </div>
+                    <div className="flex-1 p-4 flex justify-between items-center">
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="bg-up-accent/10 text-up-accent px-2 py-0.5 rounded-md text-[10px] font-black uppercase border border-up-accent/20 flex items-center gap-1">
+                                    <User size={10} /> CRM LEAD
+                                </span>
+                                <div className="flex items-center text-xs text-gray-400 font-bold">
+                                    <Clock size={12} className="mr-1" /> {time}
+                                </div>
+                            </div>
+                            <h3 className="font-black text-up-dark dark:text-white text-lg">{lead.name}</h3>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                <Building size={12} /> {lead.source}
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 pr-2">
+                             <a href={`https://wa.me/55${lead.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center text-green-600 transition-all hover:bg-green-100 dark:hover:bg-green-500/20 hover:scale-110 shadow-sm">
+                                <WhatsAppLogo />
+                            </a>
+                            <ChevronRight size={20} className="text-gray-300 group-hover:text-up-accent transition-colors" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Custom Event (CRM Manual)
     return (
-        <div className="bg-white dark:bg-up-deep rounded-2xl p-1 border-l-4 border-l-up-accent border-y border-r border-gray-100 dark:border-white/10 shadow-sm flex mb-4 transition-all hover:shadow-md group">
+        <div className="bg-white dark:bg-up-deep rounded-2xl p-1 border-l-4 border-l-purple-500 border-y border-r border-gray-100 dark:border-white/10 shadow-sm flex mb-4 transition-all hover:shadow-md group">
             <div className="flex w-full">
                 <div className="flex flex-col items-center justify-center px-5 border-r border-gray-100 dark:border-white/10 min-w-[80px]">
                     <span className="text-xs font-bold text-gray-400">{month}</span>
@@ -89,23 +129,22 @@ const UnifiedEventCard: React.FC<{ event: UnifiedEvent }> = ({ event }) => {
                 <div className="flex-1 p-4 flex justify-between items-center">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2 mb-1">
-                            <span className="bg-up-accent/10 text-up-accent px-2 py-0.5 rounded-md text-[10px] font-black uppercase border border-up-accent/20">
-                                FOLLOW-UP CRM
+                            <span className="bg-purple-500/10 text-purple-500 px-2 py-0.5 rounded-md text-[10px] font-black uppercase border border-purple-500/20">
+                                AGENDA CRM
                             </span>
                             <div className="flex items-center text-xs text-gray-400 font-bold">
                                 <Clock size={12} className="mr-1" /> {time}
                             </div>
                         </div>
-                        <h3 className="font-black text-up-dark dark:text-white text-lg">{lead.name}</h3>
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <Building size={12} /> {lead.source}
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 pr-2">
-                         <a href={`https://wa.me/55${lead.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center text-green-600 transition-all hover:bg-green-100 dark:hover:bg-green-500/20 hover:scale-110 shadow-sm">
-                            <WhatsAppLogo />
-                        </a>
-                        <ChevronRight size={20} className="text-gray-300 group-hover:text-up-accent transition-colors" />
+                        <h3 className="font-black text-up-dark dark:text-white text-lg">{event.title}</h3>
+                        {event.description && (
+                            <p className="text-xs text-gray-500 line-clamp-1">{event.description}</p>
+                        )}
+                        {event.location && (
+                            <p className="text-xs text-gray-400 flex items-center gap-1">
+                                <Globe size={10} /> {event.location}
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -118,12 +157,21 @@ const Agenda = () => {
     const [loading, setLoading] = useState(true);
     const [isGoogleConnected, setIsGoogleConnected] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    
     const { currentTenant } = useAuth();
     const navigate = useNavigate();
 
     const fetchAllEvents = async () => {
         setIsRefreshing(true);
+        
+        // 1. Fetch CRM Leads Follow-ups
         const crmLeads = await db.getAgendaItems();
+        
+        // 2. Fetch Custom CRM Events
+        const customEvents = await db.getCustomEvents();
+
+        // 3. Fetch Google Calendar Events
         const connected = googleCalendar.isConnected();
         setIsGoogleConnected(connected);
         
@@ -134,11 +182,20 @@ const Agenda = () => {
 
         const unified: UnifiedEvent[] = [
             ...crmLeads.map(l => ({
-                id: `crm-${l.id}`,
-                type: 'crm' as const,
+                id: `crm-lead-${l.id}`,
+                type: 'crm_lead' as const,
                 title: l.name,
                 date: new Date(l.nextFollowUp!),
                 originalData: l
+            })),
+            ...customEvents.map(c => ({
+                id: `crm-event-${c.id}`,
+                type: 'crm_event' as const,
+                title: c.title,
+                date: new Date(c.date),
+                location: c.location,
+                description: c.description,
+                originalData: c
             })),
             ...googleEvents.map(g => ({
                 id: `google-${g.id}`,
@@ -161,8 +218,6 @@ const Agenda = () => {
     }, [currentTenant]);
 
     const handleConnectGoogle = async () => {
-        // Agora chamamos diretamente o requestToken sem verificar o tenant
-        // pois a configuração é global no código.
         try {
             await googleCalendar.requestToken();
             fetchAllEvents();
@@ -189,16 +244,23 @@ const Agenda = () => {
                         </div>
                         <div>
                             <h1 className="text-2xl font-black uppercase tracking-tight">Agenda</h1>
-                            <p className="text-gray-500 text-sm">Follow-ups do CRM + Eventos do Google.</p>
+                            <p className="text-gray-500 text-sm">Leads, Compromissos e Google Agenda.</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <button 
+                        onClick={() => setIsModalOpen(true)}
+                        className="px-5 py-2.5 bg-up-dark text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-up-accent hover:text-up-dark shadow-lg transition-all"
+                    >
+                        <CalendarPlus size={16} /> Novo Evento
+                    </button>
+
                     {isGoogleConnected ? (
                         <button 
                             onClick={handleDisconnectGoogle} 
-                            className="px-5 py-2.5 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-red-500 hover:text-white transition-all"
+                            className="px-5 py-2.5 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-red-500 hover:text-white transition-all hidden md:flex"
                         >
                             <LogOut size={14} /> Desconectar Google
                         </button>
@@ -213,7 +275,8 @@ const Agenda = () => {
                     <button 
                         onClick={fetchAllEvents}
                         disabled={isRefreshing}
-                        className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-2xl text-gray-400 hover:text-up-accent transition-all"
+                        className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-2xl text-gray-400 hover:text-up-accent transition-all active:scale-95"
+                        title="Forçar Sincronização"
                     >
                         <RefreshCw size={20} className={isRefreshing ? 'animate-spin' : ''} />
                     </button>
@@ -258,6 +321,15 @@ const Agenda = () => {
                     </div>
                 )}
             </div>
+
+            <EventModal 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)} 
+                onSuccess={() => {
+                    // Espera 1s para dar tempo do Google propagar o evento, depois atualiza
+                    setTimeout(fetchAllEvents, 1000);
+                }} 
+            />
         </div>
     );
 };

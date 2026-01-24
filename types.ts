@@ -89,6 +89,17 @@ export interface Client {
   activities: ActivityLog[];
 }
 
+// NOVO: Eventos manuais da agenda (sem ser Lead)
+export interface CustomEvent {
+    id: string;
+    tenantId: string;
+    title: string;
+    description?: string;
+    date: string; // ISO String
+    location?: string;
+    isGoogleSynced?: boolean;
+}
+
 export interface Notification {
   id: string;
   tenantId: string;

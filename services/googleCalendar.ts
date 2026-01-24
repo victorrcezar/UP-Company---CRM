@@ -38,12 +38,29 @@ class GoogleCalendarService {
                 client_id: GOOGLE_CLIENT_ID,
                 scope: SCOPES,
                 callback: (response: any) => {
+                    // Tratamento de erros vindo do popup do Google
+                    if (response.error) {
+                        console.error("Erro na Autenticação Google:", response);
+                        
+                        if (response.error === 'popup_closed_by_user') {
+                            console.warn("Login cancelado pelo usuário.");
+                        } else if (response.error === 'access_denied') {
+                            alert("ACESSO NEGADO PELO GOOGLE!\n\nMotivo provável: Seu e-mail não foi adicionado como 'Usuário de Teste' no Google Cloud Console.\n\nAcesse o painel do Google Cloud -> Tela de Permissão OAuth -> Usuários de Teste e adicione seu e-mail.");
+                        } else {
+                            alert(`Erro ao conectar Google: ${response.error}`);
+                        }
+                        return;
+                    }
+
                     if (response.access_token) {
                         this.accessToken = response.access_token;
                         localStorage.setItem('g_cal_access_token', response.access_token);
                         callback(response.access_token);
                     }
                 },
+                error_callback: (err: any) => {
+                    console.error("Erro fatal no cliente OAuth:", err);
+                }
             });
         }
     }
@@ -51,7 +68,7 @@ class GoogleCalendarService {
     async requestToken() {
         if (!GOOGLE_CLIENT_ID) {
             console.error('ERRO: Client ID não configurado.');
-            alert('Erro de Configuração: ID do Google não definido.');
+            alert('Erro de Configuração: ID do Google não definido no código.');
             return;
         }
 
@@ -61,14 +78,11 @@ class GoogleCalendarService {
             // Pequeno delay para garantir que a lib do Google carregou
             setTimeout(() => {
                 if (this.tokenClient) {
-                    // O prompt vazio tenta usar credenciais existentes sem forçar o popup se possível
-                    this.tokenClient.requestAccessToken({ prompt: '' });
+                    // Usa 'consent' para forçar a tela de permissão se o token estiver inválido ou expirado
+                    this.tokenClient.requestAccessToken({ prompt: 'consent' });
                 } else {
-                    console.warn("Google GIS não carregado, tentando novamente com prompt...");
-                    // Fallback
-                    setTimeout(() => {
-                         if (this.tokenClient) this.tokenClient.requestAccessToken({ prompt: 'consent' });
-                    }, 1000);
+                    console.warn("Google GIS não carregado. Verifique sua conexão.");
+                    alert("A biblioteca de login do Google ainda não carregou. Tente novamente em alguns segundos.");
                 }
             }, 500);
         });
@@ -94,6 +108,7 @@ class GoogleCalendarService {
             );
 
             if (response.status === 401) {
+                console.warn("Token Google expirado. Realizando logout.");
                 this.logout();
                 return [];
             }
@@ -112,17 +127,19 @@ class GoogleCalendarService {
         start: string; 
         end: string; 
         attendees?: string[]; 
+        location?: string;
     }): Promise<boolean> {
         const token = this.accessToken || localStorage.getItem('g_cal_access_token');
         
         if (!token) {
-            console.warn("Google Calendar não conectado.");
+            console.warn("Google Calendar não conectado. Ignorando criação de evento.");
             return false;
         }
 
         const payload = {
             summary: eventData.summary,
             description: eventData.description,
+            location: eventData.location,
             start: { dateTime: eventData.start },
             end: { dateTime: eventData.end },
             attendees: eventData.attendees ? eventData.attendees.map(email => ({ email })) : [],
@@ -150,6 +167,8 @@ class GoogleCalendarService {
 
             if (!response.ok) {
                 if (response.status === 401) this.logout();
+                const errData = await response.json();
+                console.error("Erro API Google Calendar:", errData);
                 return false;
             }
 
@@ -163,8 +182,16 @@ class GoogleCalendarService {
     logout() {
         localStorage.removeItem('g_cal_access_token');
         this.accessToken = null;
-        if (typeof window !== 'undefined' && (window as any).google) {
-            (window as any).google.accounts.oauth2.revoke(this.accessToken, () => {console.log('Token revogado')});
+        
+        // Tenta revogar o token se a biblioteca estiver carregada
+        if (typeof window !== 'undefined' && (window as any).google && (window as any).google.accounts) {
+            try {
+                (window as any).google.accounts.oauth2.revoke(this.accessToken, () => {
+                    console.log('Token Google revogado.');
+                });
+            } catch (e) {
+                // Token já inválido ou lib não carregada
+            }
         }
     }
 
