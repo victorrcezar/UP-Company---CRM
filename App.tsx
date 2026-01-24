@@ -1,8 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
-import MobileNavbar from './components/MobileNavbar';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import Leads from './pages/Leads';
@@ -11,6 +10,7 @@ import Agenda from './pages/Agenda';
 import Clients from './pages/Clients';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
+import ResetPassword from './pages/ResetPassword';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Protected Route Component
@@ -81,26 +81,53 @@ const MainLayout = () => {
             </main>
           </div>
       </div>
-      
-      {/* Mobile Bottom Navigation */}
-      <MobileNavbar toggleSidebar={toggleSidebar} />
     </div>
+  );
+};
+
+// Componente Wrapper para gerenciar a lógica de rota inicial
+const AppContent = () => {
+  const [isResetFlow, setIsResetFlow] = useState(false);
+
+  useEffect(() => {
+    // Verifica se estamos no fluxo de redefinição de senha (link do e-mail)
+    // O Firebase envia ?oobCode=... ou ?mode=resetPassword antes do Hash #
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('oobCode') || params.get('mode') === 'resetPassword') {
+      setIsResetFlow(true);
+    }
+  }, []);
+
+  if (isResetFlow) {
+    // IMPORTANTE: ResetPassword precisa estar dentro de um Router para usar hooks de navegação (useNavigate)
+    return (
+      <Router>
+        <Routes>
+          <Route path="*" element={<ResetPassword />} />
+        </Routes>
+      </Router>
+    );
+  }
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/*" element={
+            <RequireAuth>
+                <MainLayout />
+            </RequireAuth>
+        } />
+      </Routes>
+    </Router>
   );
 };
 
 const App = () => {
   return (
     <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/*" element={
-                <RequireAuth>
-                    <MainLayout />
-                </RequireAuth>
-            } />
-          </Routes>
-        </Router>
+        <AppContent />
     </AuthProvider>
   );
 };

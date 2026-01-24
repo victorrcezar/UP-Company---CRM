@@ -21,6 +21,7 @@ const Reports = () => {
   const [sourceData, setSourceData] = useState<any[]>([]);
   const [funnelData, setFunnelData] = useState<any[]>([]);
   const [revenueData, setRevenueData] = useState<any[]>([]);
+  const [leadsByMonthData, setLeadsByMonthData] = useState<any[]>([]);
 
   useEffect(() => {
     fetchData();
@@ -74,10 +75,27 @@ const Reports = () => {
         { name: 'Perdidos', value: statusCounts['Lost'] }
     ]);
 
-    // 4. Mock Revenue History
-    const months = timeRange === '30d' ? 4 : timeRange === '90d' ? 6 : 12;
+    // 4. Monthly Leads Acquisition (Bar Chart)
+    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const monthlyCounts = new Array(12).fill(0);
+    
+    data.forEach(l => {
+        const d = new Date(l.createdAt);
+        // Garante que é deste ano se o filtro for 'year', ou processa tudo se for geral
+        // Aqui simplificamos pegando o mês de todos os leads para demo
+        monthlyCounts[d.getMonth()]++;
+    });
+
+    const monthlyChartData = months.map((m, i) => ({
+        name: m,
+        leads: monthlyCounts[i]
+    }));
+    setLeadsByMonthData(monthlyChartData);
+
+    // 5. Mock Revenue History
+    const monthsRange = timeRange === '30d' ? 4 : timeRange === '90d' ? 6 : 12;
     const mockHistory = [];
-    for (let i = 0; i < months; i++) {
+    for (let i = 0; i < monthsRange; i++) {
         mockHistory.push({
             name: `Período ${i + 1}`,
             revenue: Math.floor(Math.random() * (totalRevenue / 2)) + 1000,
@@ -248,13 +266,32 @@ const Reports = () => {
           </div>
       </div>
 
-      {/* Secondary Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* NEW SECTION: Monthly Leads & Funnel */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
+          {/* Monthly Leads Chart */}
+          <div className="lg:col-span-2 bg-white dark:bg-up-deep p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+              <h3 className="font-bold text-up-dark dark:text-white mb-6">Volume de Aquisição (Leads por Mês)</h3>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={leadsByMonthData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 12}} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 12}} />
+                        <Tooltip 
+                            cursor={{fill: 'rgba(56, 189, 248, 0.1)'}}
+                            contentStyle={{ backgroundColor: '#0A1F2E', border: 'none', borderRadius: '8px', color: '#fff' }}
+                        />
+                        <Bar dataKey="leads" name="Novos Leads" fill="#3B82F6" radius={[4, 4, 0, 0]} barSize={40} />
+                    </BarChart>
+                </ResponsiveContainer>
+              </div>
+          </div>
+
           {/* Funnel Conversion */}
           <div className="bg-white dark:bg-up-deep p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
               <h3 className="font-bold text-up-dark dark:text-white mb-6">Funil de Conversão</h3>
-              <div className="h-64">
+              <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={funnelData} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
@@ -273,8 +310,10 @@ const Reports = () => {
                 </ResponsiveContainer>
               </div>
           </div>
+      </div>
 
-          {/* Instagram Widget - REPLACING THE PREVIOUS TAGS WIDGET */}
+      {/* Instagram Widget */}
+      <div className="grid grid-cols-1 gap-6">
           <div className="bg-gradient-to-br from-pink-500 via-purple-500 to-orange-400 p-[1px] rounded-2xl shadow-sm flex flex-col h-full">
             <div className="bg-white dark:bg-up-deep rounded-2xl p-6 h-full flex flex-col">
               <div className="flex justify-between items-center mb-6">
@@ -287,7 +326,6 @@ const Reports = () => {
               </div>
               
               <div className="flex-1 flex flex-col">
-                 {/* Profile Header Mockup */}
                  <div className="flex items-center gap-4 mb-6">
                     <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600">
                         <img 
@@ -308,7 +346,6 @@ const Reports = () => {
                     </div>
                  </div>
 
-                 {/* Simulated Grid */}
                  <div className="grid grid-cols-3 gap-2 mb-6">
                     {[1, 2, 3].map((i) => (
                         <div key={i} className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden relative group cursor-pointer">

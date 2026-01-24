@@ -14,16 +14,26 @@ export interface GoogleEvent {
 }
 
 class GoogleCalendarService {
-    private tokenClient: any = null;
-    private accessToken: string | null = null;
+    tokenClient: any;
+    accessToken: string | null;
+    currentClientId: string | null;
 
     constructor() {
+        this.tokenClient = null;
         this.accessToken = localStorage.getItem('g_cal_access_token');
+        this.currentClientId = localStorage.getItem('g_cal_client_id');
     }
 
     async initTokenClient(clientId: string, callback: (token: string) => void) {
         if (typeof window === 'undefined' || !clientId) return;
         
+        // Se o Client ID mudou (outro tenant logado), limpa o token antigo
+        if (this.currentClientId && this.currentClientId !== clientId) {
+            this.logout();
+        }
+        this.currentClientId = clientId;
+        localStorage.setItem('g_cal_client_id', clientId);
+
         // @ts-ignore
         if (window.google?.accounts?.oauth2) {
             // @ts-ignore
@@ -50,7 +60,12 @@ class GoogleCalendarService {
         return new Promise<string>((resolve) => {
             // Sempre reinicializa para garantir que usa o Client ID mais recente
             this.initTokenClient(clientId, (token) => resolve(token));
-            this.tokenClient.requestAccessToken({ prompt: 'consent' });
+            // Pequeno delay para garantir que o init completou
+            setTimeout(() => {
+                if (this.tokenClient) {
+                    this.tokenClient.requestAccessToken({ prompt: 'consent' });
+                }
+            }, 100);
         });
     }
 
@@ -74,8 +89,7 @@ class GoogleCalendarService {
             );
 
             if (response.status === 401) {
-                localStorage.removeItem('g_cal_access_token');
-                this.accessToken = null;
+                this.logout();
                 return [];
             }
 
@@ -89,6 +103,7 @@ class GoogleCalendarService {
 
     logout() {
         localStorage.removeItem('g_cal_access_token');
+        // Não removemos o client_id aqui, pois ele é configuração do tenant, não sessão de usuário
         this.accessToken = null;
     }
 

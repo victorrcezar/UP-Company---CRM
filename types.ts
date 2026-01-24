@@ -101,7 +101,9 @@ export interface Notification {
 }
 
 export interface DashboardStats {
-  totalLeads: number;
+  totalLeads: number; // Histórico total
+  activeLeads: number; // Apenas em negociação (Pipeline Ativo)
+  closedDeals: number; // Vendas totais
   monthlyLeads: number;
   conversionRate: number;
   monthlyRevenue: number;

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { db } from '../services/mockDb';
 import { DashboardStats, Lead } from '../types';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { ArrowUpRight, Users, DollarSign, Target, Calendar, Clock, ChevronRight, Zap, TrendingUp, CheckCircle2, PieChart as PieIcon, ArrowRight } from 'lucide-react';
+import { ArrowUpRight, Users, DollarSign, Target, Calendar, Clock, ChevronRight, Zap, TrendingUp, CheckCircle2, PieChart as PieIcon, ArrowRight, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -32,7 +32,7 @@ const DashboardSkeleton = () => (
     </div>
 );
 
-const StatCard = ({ title, value, trend, icon: Icon, color, delay }: any) => (
+const StatCard = ({ title, value, subValue, trend, icon: Icon, color, delay }: any) => (
   <div 
     className="bg-white dark:bg-up-surface p-5 rounded-[1.5rem] shadow-sm hover:shadow-glow border border-slate-100 dark:border-slate-800/50 flex flex-col justify-between hover:-translate-y-1 transition-all duration-300 group cursor-default opacity-0 animate-slide-up"
     style={{ animationDelay: `${delay}ms` }}
@@ -46,9 +46,13 @@ const StatCard = ({ title, value, trend, icon: Icon, color, delay }: any) => (
         <Icon size={20} className="text-current" />
       </div>
     </div>
-    <div className="mt-4 flex items-center text-[10px] font-black uppercase tracking-widest">
-      <span className="text-green-500 flex items-center bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-lg"><ArrowUpRight size={12} className="mr-1" />{trend}</span>
-      <span className="text-slate-400 dark:text-slate-600 ml-2">este mês</span>
+    <div className="mt-4 flex items-center justify-between">
+      <div className="flex items-center text-[10px] font-black uppercase tracking-widest">
+        <span className="text-green-500 flex items-center bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-lg"><ArrowUpRight size={12} className="mr-1" />{trend}</span>
+      </div>
+      {subValue && (
+          <span className="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">{subValue}</span>
+      )}
     </div>
   </div>
 );
@@ -142,10 +146,44 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Leads Ativos" value={stats.totalLeads} trend={stats.totalLeads > 0 ? "+100%" : "0%"} icon={Users} color="text-blue-500 bg-blue-500" delay={100} />
-        <StatCard title="Receita (MRR)" value={`R$ ${stats.monthlyRevenue.toLocaleString('pt-BR')}`} trend={stats.monthlyRevenue > 0 ? "+100%" : "0%"} icon={DollarSign} color="text-green-500 bg-green-500" delay={200} />
-        <StatCard title="Conversão" value={`${stats.conversionRate}%`} trend={stats.conversionRate > 0 ? "+100%" : "0%"} icon={Target} color="text-purple-500 bg-purple-500" delay={300} />
-        <StatCard title="Ticket Médio" value={`R$ ${stats.averageTicket.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`} trend={stats.averageTicket > 0 ? "+100%" : "0%"} icon={TrendingUp} color="text-orange-500 bg-orange-500" delay={400} />
+        {/* USANDO activeLeads (Oportunidades em aberto) */}
+        <StatCard 
+            title="Oportunidades" 
+            value={stats.activeLeads} 
+            trend={stats.activeLeads > 0 ? "+Ativo" : "-"} 
+            icon={Briefcase} 
+            color="text-blue-500 bg-blue-500" 
+            delay={100} 
+        />
+        
+        {/* Mostrando Vendas Totais como sub-valor */}
+        <StatCard 
+            title="Receita (MRR)" 
+            value={`R$ ${stats.monthlyRevenue.toLocaleString('pt-BR')}`} 
+            subValue={`${stats.closedDeals} Vendas`}
+            trend="+100%" 
+            icon={DollarSign} 
+            color="text-green-500 bg-green-500" 
+            delay={200} 
+        />
+        
+        <StatCard 
+            title="Conversão" 
+            value={`${stats.conversionRate}%`} 
+            trend="Funil Geral" 
+            icon={Target} 
+            color="text-purple-500 bg-purple-500" 
+            delay={300} 
+        />
+        
+        <StatCard 
+            title="Ticket Médio" 
+            value={`R$ ${stats.averageTicket.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`} 
+            trend="Este Mês" 
+            icon={TrendingUp} 
+            color="text-orange-500 bg-orange-500" 
+            delay={400} 
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

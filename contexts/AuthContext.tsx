@@ -1,14 +1,19 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Tenant } from '../types';
-import { db, TENANTS, USERS } from '../services/mockDb';
+import { db } from '../services/mockDb';
+import { sendPasswordResetEmail, signInWithEmailAndPassword, signOut, confirmPasswordReset as firebaseConfirmReset, verifyPasswordResetCode } from 'firebase/auth';
+import { auth } from '../services/firebase';
 
 interface AuthContextType {
   user: User | null;
   currentTenant: Tenant | null;
   availableTenants: Tenant[];
-  login: (email: string, password?: string) => Promise<boolean>;
+  login: (email: string, password?: string) => Promise<string | null>;
   logout: () => void;
+  resetPassword: (email: string) => Promise<string | null>;
+  verifyResetCode: (oobCode: string) => Promise<string | null>;
+  confirmReset: (oobCode: string, newPassword: string) => Promise<string | null>;
   switchTenant: (tenantId: string) => void;
   updateTenantProfile: (updates: Partial<Tenant>) => Promise<void>;
   updateUserProfile: (updates: Partial<User>) => Promise<void>;
@@ -28,7 +33,7 @@ export const AuthProvider: React.FC<{ children?: React.ReactNode }> = ({ childre
 
   // Helper para configurar ambiente baseado no usuário
   const setupUserEnvironment = async (loggedUser: User) => {
-      // Busca tenants atualizados do banco
+      // Busca tenants atualizados do banco (COM PERSISTÊNCIA)
       const allTenants = await db.getAllTenants();
 
       if (loggedUser.role === 'super_admin') {
@@ -78,48 +83,41 @@ export const AuthProvider: React.FC<{ children?: React.ReactNode }> = ({ childre
     checkSession();
   }, []);
 
-  const login = async (email: string, password?: string) => {
+  const login = async (email: string, password?: string): Promise<string | null> => {
     const allUsers = await db.getAllUsers();
-    const foundUser = allUsers.find(u => u.email === email);
+    // Busca user de forma case-insensitive para evitar "system/user-not-found" indevido
+    const foundUser = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
     
-    if (foundUser) {
-        // Validação de segurança específica para Super Admins
-        if (foundUser.role === 'super_admin') {
-            const adminPasswords: Record<string, string> = {
-                'victor@upandco.com.br': 'Victor585722!#@',
-                'bruno@upandco.com.br': 'UP!2026!#@'
-            };
-            
-            const requiredPass = adminPasswords[foundUser.email];
-            if (requiredPass) {
-                if (password !== requiredPass) {
-                    console.error("Senha incorreta para Super Admin");
-                    return false;
-                }
-            } else {
-                // Caso exista um super admin genérico (sem senha hardcoded específica)
-                if (password && password !== '123456') return false;
-            }
-        } 
-        // Senha padrão para outros usuários
-        else {
-            if (password && password !== '123456') {
-                return false;
-            }
-        }
-
-        localStorage.setItem('up_crm_user_id', foundUser.id);
-        setUser(foundUser);
-        
-        // Configura o ambiente (Isolamento ou Acesso Total)
-        await setupUserEnvironment(foundUser);
-        
-        return true;
+    if (!foundUser) {
+        console.error("Usuário não encontrado na base de dados do sistema.");
+        return 'system/user-not-found';
     }
-    return false;
+
+    if (password) {
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            console.log("✅ Login autenticado via Firebase Auth");
+            
+            localStorage.setItem('up_crm_user_id', foundUser.id);
+            setUser(foundUser);
+            await setupUserEnvironment(foundUser);
+            return null; // Sucesso retorna null
+
+        } catch (error: any) {
+            console.error("❌ Falha na autenticação:", error.code);
+            return error.code || 'auth/unknown-error'; // Retorna o código do erro
+        }
+    }
+
+    return 'auth/missing-password';
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.error("Erro ao deslogar do Firebase", error);
+    }
     localStorage.removeItem('up_crm_user_id');
     localStorage.removeItem('up_crm_tenant_id');
     setUser(null);
@@ -127,15 +125,46 @@ export const AuthProvider: React.FC<{ children?: React.ReactNode }> = ({ childre
     setAvailableTenants([]);
   };
 
+  const resetPassword = async (email: string): Promise<string | null> => {
+      try {
+          console.log(`📨 Tentando enviar reset de senha para: ${email}...`);
+          auth.languageCode = 'pt-BR';
+          await sendPasswordResetEmail(auth, email);
+          console.log("✅ Reset de senha enviado com sucesso pelo Firebase!");
+          return null; // Null indica sucesso
+      } catch (error: any) {
+          console.error("❌ Erro ao enviar reset de senha:", error.code, error.message);
+          return error.code || 'unknown'; // Retorna o código do erro
+      }
+  };
+
+  const verifyResetCode = async (oobCode: string): Promise<string | null> => {
+      try {
+          const email = await verifyPasswordResetCode(auth, oobCode);
+          return email;
+      } catch (error) {
+          console.error("Código de reset inválido:", error);
+          return null;
+      }
+  };
+
+  const confirmReset = async (oobCode: string, newPassword: string): Promise<string | null> => {
+      try {
+          await firebaseConfirmReset(auth, oobCode, newPassword);
+          console.log("✅ Senha redefinida com sucesso no Firebase!");
+          return null; // Sucesso
+      } catch (error: any) {
+          console.error("❌ Erro ao confirmar reset de senha:", error.code, error.message);
+          return error.code || 'unknown'; // Retorna código do erro
+      }
+  };
+
   const switchTenant = async (tenantId: string) => {
-    // SEGURANÇA: Só permite trocar se for super_admin
-    // Usuários comuns não podem invocar essa função para tenants alheios
     if (user?.role !== 'super_admin') {
         console.warn("Tentativa não autorizada de troca de tenant.");
         return;
     }
 
-    // Refresh list to ensure we have the latest
     const allTenants = await db.getAllTenants();
     setAvailableTenants(allTenants);
 
@@ -151,23 +180,17 @@ export const AuthProvider: React.FC<{ children?: React.ReactNode }> = ({ childre
       if (!currentTenant) return;
       const updatedTenant = await db.updateTenant(currentTenant.id, updates);
       setCurrentTenant(updatedTenant);
-      
-      // Atualiza a lista disponível
       setAvailableTenants(prev => prev.map(t => t.id === updatedTenant.id ? updatedTenant : t));
   };
 
   const updateUserProfile = async (updates: Partial<User>) => {
       if (!user) return;
       const updatedUser = await db.updateUser(user.id, updates);
-      // Atualiza o estado local do usuário com os dados mesclados
       setUser({ ...user, ...updatedUser });
   };
 
   const createClient = async (data: { name: string, email: string, companyName: string, category: string }) => {
-      // Create in DB
       await db.createSystemClient(data);
-      
-      // Update local state for immediate visibility ONLY if super_admin
       if (user?.role === 'super_admin') {
           const allTenants = await db.getAllTenants();
           setAvailableTenants(allTenants);
@@ -175,34 +198,19 @@ export const AuthProvider: React.FC<{ children?: React.ReactNode }> = ({ childre
   };
 
   const updateSystemClient = async (tenantId: string, data: { name: string, category: string, adminName?: string, adminEmail?: string }) => {
-      // 1. Update Tenant
-      const updatedTenant = await db.updateTenant(tenantId, { name: data.name, category: data.category });
-      
-      // 2. Update Admin User
-      if (data.adminName || data.adminEmail) {
-          const admin = await db.getTenantAdmin(tenantId);
-          if (admin) {
-              await db.updateUser(admin.id, { name: data.adminName, email: data.adminEmail });
-          }
-      }
-
-      // 3. Update Local State
-      setAvailableTenants(prev => prev.map(t => t.id === tenantId ? updatedTenant : t));
-      
-      // If updating current tenant, update that too
+      await db.updateSystemClient(tenantId, data);
+      const allTenants = await db.getAllTenants();
+      setAvailableTenants(allTenants);
       if (currentTenant?.id === tenantId) {
-          setCurrentTenant(updatedTenant);
+          const updated = allTenants.find(t => t.id === tenantId);
+          if (updated) setCurrentTenant(updated);
       }
   };
 
   const deleteSystemClient = async (tenantId: string) => {
       await db.deleteTenant(tenantId);
-      
-      // Update local state
-      const updatedTenants = availableTenants.filter(t => t.id !== tenantId);
+      const updatedTenants = await db.getAllTenants();
       setAvailableTenants(updatedTenants);
-
-      // If user was viewing the deleted tenant, switch to the first available or master
       if (currentTenant?.id === tenantId) {
           const nextTenant = updatedTenants[0];
           if (nextTenant) {
@@ -212,7 +220,7 @@ export const AuthProvider: React.FC<{ children?: React.ReactNode }> = ({ childre
   };
 
   return (
-    <AuthContext.Provider value={{ user, currentTenant, availableTenants, login, logout, switchTenant, updateTenantProfile, updateUserProfile, createClient, updateSystemClient, deleteSystemClient, isLoading }}>
+    <AuthContext.Provider value={{ user, currentTenant, availableTenants, login, logout, resetPassword, verifyResetCode, confirmReset, switchTenant, updateTenantProfile, updateUserProfile, createClient, updateSystemClient, deleteSystemClient, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

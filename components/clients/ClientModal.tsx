@@ -8,7 +8,7 @@ interface ClientModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSaveSuccess: () => void;
-    client?: Client | null; // Prop opcional para edição
+    client?: Client | null;
 }
 
 const formatPhone = (value: string) => {
@@ -34,17 +34,15 @@ const ClientModal: React.FC<ClientModalProps> = ({ isOpen, onClose, onSaveSucces
         phone: '',
         contractValue: 0,
         contractStartDate: new Date().toISOString().split('T')[0],
-        contractDuration: 12, // Agora é number
+        contractDuration: 12,
         notes: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Efeito para preencher o formulário se estiver editando
     useEffect(() => {
         if (isOpen) {
             if (client) {
-                // Modo Edição
                 setContractModel(client.contractModel || 'Recurring');
                 setFormData({
                     name: client.name,
@@ -57,7 +55,6 @@ const ClientModal: React.FC<ClientModalProps> = ({ isOpen, onClose, onSaveSucces
                     notes: client.notes || ''
                 });
             } else {
-                // Modo Criação (Limpar campos)
                 setContractModel('Recurring');
                 setFormData({
                     name: '',
@@ -96,13 +93,8 @@ const ClientModal: React.FC<ClientModalProps> = ({ isOpen, onClose, onSaveSucces
         setLoading(true);
         try {
             if (client) {
-                // ATUALIZAR
-                await db.updateClient(client.id, {
-                    ...formData,
-                    contractModel: contractModel
-                });
+                await db.updateClient(client.id, { ...formData, contractModel: contractModel });
             } else {
-                // CRIAR
                 await db.addClient({
                     ...formData,
                     status: 'Active',
@@ -123,7 +115,6 @@ const ClientModal: React.FC<ClientModalProps> = ({ isOpen, onClose, onSaveSucces
                     ]
                 });
             }
-            
             onSaveSuccess();
             onClose();
         } catch (error) {
@@ -135,196 +126,196 @@ const ClientModal: React.FC<ClientModalProps> = ({ isOpen, onClose, onSaveSucces
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[70] flex items-center justify-center p-4 animate-fade-in">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[70] flex items-center justify-center p-0 md:p-6 animate-fade-in">
             <form 
                 onSubmit={handleSubmit}
-                className="bg-white dark:bg-up-deep w-full max-w-2xl rounded-[2rem] shadow-2xl flex flex-col max-h-[90vh] animate-scale-up border border-gray-100 dark:border-gray-700 overflow-hidden"
+                className="bg-white dark:bg-[#0A1F2E] w-full h-full md:h-auto md:max-h-[90vh] md:max-w-2xl rounded-none md:rounded-[2.5rem] shadow-2xl flex flex-col animate-scale-up border-0 md:border border-white/10 overflow-hidden relative"
             >
-                <div className="px-8 py-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-up-dark/20 shrink-0">
+                <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-white/50 dark:bg-[#0A1F2E] shrink-0 backdrop-blur-md">
                     <div className="flex items-center gap-4">
-                        <div className="bg-up-dark text-up-accent p-2.5 rounded-xl shadow-xl">
+                        <div className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-3 rounded-2xl shadow-lg shadow-blue-500/20">
                             {client ? <Pencil size={20} /> : <UserPlus size={20} />}
                         </div>
                         <div>
-                            <h2 className="text-lg font-black text-up-dark dark:text-white uppercase tracking-tight leading-none">
-                                {client ? 'Editar Cliente' : 'Novo Cliente Direto'}
+                            <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">
+                                {client ? 'Editar Cliente' : 'Novo Cliente'}
                             </h2>
-                            <p className="text-[10px] text-gray-500 font-bold mt-1">
-                                {client ? 'Atualize os dados contratuais.' : 'Cadastro manual de contrato.'}
+                            <p className="text-[10px] text-slate-500 font-bold mt-1 uppercase tracking-wider">
+                                {client ? 'Atualize os dados da conta' : 'Cadastro manual de contrato'}
                             </p>
                         </div>
                     </div>
-                    <button type="button" onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
+                    <button type="button" onClick={onClose} className="p-2.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-all">
                         <X size={20} />
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-6">
+                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8 bg-[#F8FAFC] dark:bg-[#020617]">
                     {error && (
-                        <div className="bg-red-50 border border-red-100 text-red-600 px-6 py-4 rounded-2xl text-sm font-bold animate-fade-in">
-                            {error}
+                        <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-4 rounded-2xl text-sm font-bold animate-fade-in flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> {error}
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div className="md:col-span-2">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase ml-1 mb-1.5">Nome Completo do Responsável <span className="text-red-500">*</span></label>
-                            <div className="relative">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="md:col-span-2 space-y-2">
+                            <label className="block text-[10px] font-black text-slate-400 uppercase ml-1">Responsável Principal <span className="text-red-500">*</span></label>
+                            <div className="relative group">
                                 <input 
                                     type="text" 
                                     value={formData.name}
                                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                    className="w-full pl-10 pr-4 py-3.5 bg-gray-50 dark:bg-up-dark/50 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold focus:ring-4 focus:ring-up-accent/10 focus:border-up-accent transition-all outline-none dark:text-white"
-                                    placeholder="Ex: Roberto Meira"
+                                    className="w-full pl-12 pr-4 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white"
+                                    placeholder="Nome Completo"
                                 />
-                                <Building size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <UserPlus size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase ml-1 mb-1.5">Telefone / WhatsApp <span className="text-red-500">*</span></label>
-                            <div className="relative">
+                        <div className="space-y-2">
+                            <label className="block text-[10px] font-black text-slate-400 uppercase ml-1">Contato (WhatsApp) <span className="text-red-500">*</span></label>
+                            <div className="relative group">
                                 <input 
                                     type="text" 
                                     value={formData.phone}
                                     onChange={handlePhoneChange}
-                                    className="w-full pl-10 pr-4 py-3.5 bg-gray-50 dark:bg-up-dark/50 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold focus:ring-4 focus:ring-up-accent/10 focus:border-up-accent transition-all outline-none dark:text-white"
+                                    className="w-full pl-12 pr-4 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white"
                                     placeholder="(11) 99999-9999"
                                 />
-                                <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <Phone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase ml-1 mb-1.5">E-mail Principal</label>
-                            <div className="relative">
+                        <div className="space-y-2">
+                            <label className="block text-[10px] font-black text-slate-400 uppercase ml-1">E-mail Corporativo</label>
+                            <div className="relative group">
                                 <input 
                                     type="email" 
                                     value={formData.email}
                                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                                    className="w-full pl-10 pr-4 py-3.5 bg-gray-50 dark:bg-up-dark/50 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold focus:ring-4 focus:ring-up-accent/10 focus:border-up-accent transition-all outline-none dark:text-white"
-                                    placeholder="roberto@empresa.com"
+                                    className="w-full pl-12 pr-4 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white"
+                                    placeholder="email@empresa.com"
                                 />
-                                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                             </div>
                         </div>
                         
-                        <div className="md:col-span-2">
-                             <label className="block text-[10px] font-black text-gray-400 uppercase ml-1 mb-1.5">Empresa / Razão Social</label>
-                            <div className="relative">
+                        <div className="md:col-span-2 space-y-2">
+                             <label className="block text-[10px] font-black text-slate-400 uppercase ml-1">Empresa / Razão Social</label>
+                            <div className="relative group">
                                 <input 
                                     type="text" 
                                     value={formData.companyName}
                                     onChange={(e) => setFormData({...formData, companyName: e.target.value})}
-                                    className="w-full pl-10 pr-4 py-3.5 bg-gray-50 dark:bg-up-dark/50 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold focus:ring-4 focus:ring-up-accent/10 focus:border-up-accent transition-all outline-none dark:text-white"
-                                    placeholder="Ex: Meira e Sá Advogados"
+                                    className="w-full pl-12 pr-4 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white"
+                                    placeholder="Nome da Empresa"
                                 />
-                                <Building size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <Building size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                             </div>
                         </div>
                     </div>
 
-                    <div className="space-y-5 pt-5 border-t border-gray-100 dark:border-gray-700">
+                    <div className="space-y-6 pt-6 border-t border-slate-200 dark:border-white/5">
                         <div className="flex justify-between items-center">
-                             <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Termos Contratuais</h3>
-                             <div className="flex p-1 bg-gray-50 dark:bg-up-dark/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                             <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Termos Contratuais</h3>
+                             <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/10">
                                 <button
                                     type="button"
                                     onClick={() => setContractModel('Recurring')}
-                                    className={`px-3 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wide flex items-center gap-1 transition-all ${contractModel === 'Recurring' ? 'bg-white dark:bg-up-deep shadow-sm text-up-dark dark:text-white' : 'text-gray-400'}`}
+                                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wide flex items-center gap-2 transition-all ${contractModel === 'Recurring' ? 'bg-white dark:bg-[#0A1F2E] shadow-sm text-blue-600 dark:text-white ring-1 ring-black/5' : 'text-slate-400 hover:text-slate-600'}`}
                                 >
-                                    <Repeat size={12} /> Assinatura
+                                    <Repeat size={14} /> Assinatura
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setContractModel('OneOff')}
-                                    className={`px-3 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wide flex items-center gap-1 transition-all ${contractModel === 'OneOff' ? 'bg-white dark:bg-up-deep shadow-sm text-up-dark dark:text-white' : 'text-gray-400'}`}
+                                    onClick={() => { setContractModel('OneOff'); setFormData(prev => ({ ...prev, contractDuration: 1 })); }}
+                                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wide flex items-center gap-2 transition-all ${contractModel === 'OneOff' ? 'bg-white dark:bg-[#0A1F2E] shadow-sm text-blue-600 dark:text-white ring-1 ring-black/5' : 'text-slate-400 hover:text-slate-600'}`}
                                 >
-                                    <Briefcase size={12} /> Único
+                                    <Briefcase size={14} /> Único
                                 </button>
                             </div>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase ml-1 mb-1.5">
-                                    {contractModel === 'Recurring' ? 'Valor Mensal (MRR)' : 'Valor Único'}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase ml-1">
+                                    {contractModel === 'Recurring' ? 'Valor Mensal (MRR)' : 'Valor do Projeto/Venda'}
                                 </label>
-                                <div className="relative">
+                                <div className="relative group">
                                     <input 
                                         type="number" 
                                         value={formData.contractValue}
                                         onChange={(e) => setFormData({...formData, contractValue: Number(e.target.value)})}
-                                        className="w-full pl-10 pr-4 py-3.5 bg-gray-50 dark:bg-up-dark/50 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold focus:ring-4 focus:ring-up-accent/10 focus:border-up-accent transition-all outline-none dark:text-white"
+                                        className="w-full pl-12 pr-4 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white"
                                     />
-                                    <DollarSign size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-up-accent" />
+                                    <DollarSign size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500" />
                                 </div>
                             </div>
 
                             {contractModel === 'Recurring' ? (
-                                <div>
-                                    <div className="flex justify-between items-center mb-1.5">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase ml-1">Fidelidade (Meses)</label>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Fidelidade (Meses)</label>
                                         <div className="flex gap-1">
                                             {[3, 6, 12].map(months => (
                                                 <button
                                                     key={months}
                                                     type="button"
                                                     onClick={() => setFormData({...formData, contractDuration: months})}
-                                                    className={`text-[9px] font-bold px-2 py-0.5 rounded border transition-all ${formData.contractDuration === months ? 'bg-up-dark text-white border-up-dark' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'}`}
+                                                    className={`text-[9px] font-bold px-2 py-0.5 rounded-lg border transition-all ${formData.contractDuration === months ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent' : 'bg-transparent text-slate-400 border-slate-200 hover:border-slate-300'}`}
                                                 >
                                                     {months}
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="relative">
+                                    <div className="relative group">
                                         <input 
                                             type="number"
                                             min="1"
                                             value={formData.contractDuration}
                                             onChange={(e) => setFormData({...formData, contractDuration: Number(e.target.value)})}
-                                            className="w-full pl-10 pr-4 py-3.5 bg-gray-50 dark:bg-up-dark/50 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold focus:ring-4 focus:ring-up-accent/10 focus:border-up-accent transition-all outline-none dark:text-white"
+                                            className="w-full pl-12 pr-12 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white"
                                         />
-                                        <Clock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-up-accent" />
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400 pointer-events-none uppercase">Meses</span>
+                                        <Clock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" />
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 pointer-events-none uppercase">Meses</span>
                                     </div>
                                 </div>
                             ) : (
-                                <div className="opacity-50 pointer-events-none">
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase ml-1 mb-1.5">Fidelidade</label>
-                                    <div className="w-full px-4 py-3.5 bg-gray-50 dark:bg-up-dark/50 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold text-gray-400">
-                                        N/A
+                                <div className="space-y-2 opacity-50 pointer-events-none">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase ml-1">Duração</label>
+                                    <div className="w-full px-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl text-sm font-bold text-slate-400">
+                                        Pontual (1 Mês)
                                     </div>
                                 </div>
                             )}
 
-                            <div className="md:col-span-2">
-                                <label className="block text-[10px] font-black text-gray-400 uppercase ml-1 mb-1.5">
+                            <div className="md:col-span-2 space-y-2">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase ml-1">
                                     {contractModel === 'Recurring' ? 'Início do Faturamento' : 'Data da Venda'}
                                 </label>
-                                <div className="relative">
+                                <div className="relative group">
                                     <input 
                                         type="date" 
                                         value={formData.contractStartDate}
                                         onChange={(e) => setFormData({...formData, contractStartDate: e.target.value})}
-                                        className="w-full pl-10 pr-4 py-3.5 bg-gray-50 dark:bg-up-dark/50 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold focus:ring-4 focus:ring-up-accent/10 focus:border-up-accent transition-all outline-none dark:text-white"
+                                        className="w-full pl-12 pr-4 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white"
                                     />
-                                    <Calendar size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-up-accent" />
+                                    <Calendar size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" />
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="px-8 py-5 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3 bg-gray-50/50 dark:bg-up-dark/20 shrink-0">
-                    <button type="button" onClick={onClose} className="px-6 py-3 text-xs font-black text-gray-500 uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">Cancelar</button>
+                <div className="px-8 py-6 border-t border-gray-100 dark:border-white/5 flex justify-end gap-3 bg-white/50 dark:bg-[#0A1F2E] shrink-0 backdrop-blur-md">
+                    <button type="button" onClick={onClose} className="px-6 py-3.5 text-xs font-black text-slate-500 uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-all">Cancelar</button>
                     <button 
                         type="submit" 
                         disabled={loading}
-                        className="px-8 py-3 text-xs font-black text-up-dark bg-up-accent rounded-xl shadow-xl shadow-up-accent/20 transition-all active:scale-95 flex items-center gap-2 uppercase tracking-widest disabled:opacity-50"
+                        className="px-8 py-3.5 text-xs font-black text-white bg-blue-600 rounded-2xl shadow-xl shadow-blue-500/20 transition-all hover:bg-blue-500 active:scale-95 flex items-center gap-2 uppercase tracking-widest disabled:opacity-50"
                     >
-                        {loading ? 'Processando...' : <><CheckCircle2 size={18} /> {client ? 'Salvar' : 'Confirmar'}</>}
+                        {loading ? 'Processando...' : <><CheckCircle2 size={18} /> {client ? 'Salvar Alterações' : 'Confirmar Cadastro'}</>}
                     </button>
                 </div>
             </form>

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Tenant } from '../types';
 import { db, TENANTS, USERS } from '../services/mockDb';
@@ -9,6 +10,11 @@ interface AuthContextType {
   login: (email: string) => Promise<boolean>;
   logout: () => void;
   switchTenant: (tenantId: string) => void;
+  updateTenantProfile: (updates: Partial<Tenant>) => Promise<void>;
+  updateUserProfile: (updates: Partial<User>) => Promise<void>;
+  createClient: (data: { name: string, email: string, companyName: string, category: string }) => Promise<void>;
+  updateSystemClient: (tenantId: string, data: { name: string, category: string, adminName?: string, adminEmail?: string }) => Promise<void>;
+  deleteSystemClient: (tenantId: string) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -91,8 +97,50 @@ export const AuthProvider: React.FC<{ children?: React.ReactNode }> = ({ childre
     }
   };
 
+  // --- Methods added to match root AuthContext functionality ---
+  
+  const updateTenantProfile = async (updates: Partial<Tenant>) => {
+      if (!currentTenant) return;
+      // In a real app this would call db.updateTenant
+      const updated = { ...currentTenant, ...updates };
+      setCurrentTenant(updated);
+      setAvailableTenants(prev => prev.map(t => t.id === updated.id ? updated : t));
+  };
+
+  const updateUserProfile = async (updates: Partial<User>) => {
+      if (!user) return;
+      // In a real app this would call db.updateUser
+      setUser({ ...user, ...updates });
+  };
+
+  const createClient = async (data: { name: string, email: string, companyName: string, category: string }) => {
+      // Mock implementation
+      console.log("Creating client", data);
+      // For mock purposes, just update local state if needed or do nothing
+  };
+
+  const updateSystemClient = async (tenantId: string, data: { name: string, category: string, adminName?: string, adminEmail?: string }) => {
+      // Mock implementation
+      console.log("Updating client", tenantId, data);
+  };
+
+  const deleteSystemClient = async (tenantId: string) => {
+      // Mock implementation
+      console.log("Deleting client", tenantId);
+      setAvailableTenants(prev => prev.filter(t => t.id !== tenantId));
+      if (currentTenant?.id === tenantId) {
+          setCurrentTenant(null);
+      }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, currentTenant, availableTenants, login, logout, switchTenant, isLoading }}>
+    <AuthContext.Provider value={{ 
+        user, currentTenant, availableTenants, 
+        login, logout, switchTenant, 
+        updateTenantProfile, updateUserProfile,
+        createClient, updateSystemClient, deleteSystemClient,
+        isLoading 
+    }}>
       {children}
     </AuthContext.Provider>
   );

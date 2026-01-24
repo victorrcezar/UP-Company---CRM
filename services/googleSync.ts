@@ -26,8 +26,11 @@ class GoogleSyncService {
             titulo: `⚡ UP! Follow-up: ${lead.name} (${lead.source})`,
             inicio: startTime.toISOString(),
             fim: endTime.toISOString(),
-            descricao: `🚀 DETALHES DO ATENDIMENTO\n👤 Lead: ${lead.name}\n📱 WhatsApp: ${waLink}\n🔗 CRM: https://crm.up.com.br/leads/${lead.id}\n\n💡 Gerado automaticamente pelo UP! CRM.`,
-            local: "WhatsApp / UP! CRM"
+            descricao: `🚀 DETALHES DO ATENDIMENTO\n👤 Lead: ${lead.name}\n📧 Email: ${lead.email}\n📱 WhatsApp: ${waLink}\n🔗 CRM: https://crm.up.com.br/leads/${lead.id}\n\n💡 Gerado automaticamente pelo UP! CRM.`,
+            local: "Google Meet / WhatsApp",
+            // Adiciona o e-mail do lead como participante para receber o convite do Google
+            participantes: lead.email,
+            action: "create"
         };
 
         try {
@@ -56,7 +59,8 @@ class GoogleSyncService {
                     inicio: new Date().toISOString(),
                     fim: new Date(Date.now() + 15 * 60000).toISOString(),
                     descricao: "Se você está vendo este evento, sua integração com o UP! CRM está funcionando perfeitamente!",
-                    local: "Agenda Google"
+                    local: "Agenda Google",
+                    action: "test"
                 }),
             });
             return true;
