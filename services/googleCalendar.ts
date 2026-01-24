@@ -88,17 +88,18 @@ class GoogleCalendarService {
         });
     }
 
-    async fetchEvents(): Promise<GoogleEvent[]> {
+    // Atualizado para aceitar datas opcionais. Se não passar, pega o mês atual expandido.
+    async fetchEvents(startDate?: Date, endDate?: Date): Promise<GoogleEvent[]> {
         const token = this.accessToken || localStorage.getItem('g_cal_access_token');
         if (!token) return [];
 
-        const now = new Date().toISOString();
-        const maxDate = new Date();
-        maxDate.setDate(maxDate.getDate() + 30);
+        // Define intervalo padrão se não fornecido (Mês atual -1 semana a +1 mês)
+        const start = startDate ? startDate.toISOString() : new Date(new Date().setDate(new Date().getDate() - 7)).toISOString();
+        const end = endDate ? endDate.toISOString() : new Date(new Date().setDate(new Date().getDate() + 30)).toISOString();
 
         try {
             const response = await fetch(
-                `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${now}&timeMax=${maxDate.toISOString()}&singleEvents=true&orderBy=startTime`,
+                `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${start}&timeMax=${end}&singleEvents=true&orderBy=startTime`,
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`,
